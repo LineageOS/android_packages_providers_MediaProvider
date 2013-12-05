@@ -16,6 +16,24 @@
       "revId": "116c0417d5bca3d04ddc6869d04e7fc218a6f04f",
       "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa80f949_c85728c9",
+        "filename": "src/com/android/providers/media/MediaProvider.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 5264,
+      "author": {
+        "id": 1381
+      },
+      "writtenOn": "2013-12-05T16:12:44Z",
+      "side": 1,
+      "message": "volumeUUID may actually be null returned from MountService, so we need to do it after.",
+      "parentUuid": "fa80f949_ed71dee1",
+      "revId": "116c0417d5bca3d04ddc6869d04e7fc218a6f04f",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
     }
   ]
 }

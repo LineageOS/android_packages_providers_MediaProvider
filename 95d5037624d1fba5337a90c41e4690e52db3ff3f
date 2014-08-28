@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1b2928_1e177f52",
+        "filename": "src/com/android/providers/media/RingtonePickerActivity.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 1063
+      },
+      "writtenOn": "2014-08-28T21:09:14Z",
+      "side": 1,
+      "message": "How can mCursor be null if it\u0027s assigned in onCreate() and never set to null?",
+      "revId": "95d5037624d1fba5337a90c41e4690e52db3ff3f",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1b2928_3e123b63",
+        "filename": "src/com/android/providers/media/RingtonePickerActivity.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 359,
+      "author": {
+        "id": 1063
+      },
+      "writtenOn": "2014-08-28T21:09:14Z",
+      "side": 1,
+      "message": "This try-catch block should be nuked. Catch-all clauses are frowned upon.",
+      "revId": "95d5037624d1fba5337a90c41e4690e52db3ff3f",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1b2928_7e0cb342",
+        "filename": "src/com/android/providers/media/RingtonePickerActivity.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 1063
+      },
+      "writtenOn": "2014-08-28T21:09:14Z",
+      "side": 1,
+      "message": "Those two changes can probably be nuked as well, as they\u0027re an artifact of the previous change that essentially killed startManagingCursor().",
+      "revId": "95d5037624d1fba5337a90c41e4690e52db3ff3f",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    }
+  ]
+}

@@ -16,6 +16,24 @@
       "revId": "5622930bf35b8aa592af4cc26cd0fa2e86fd6dd0",
       "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1b2928_39b095dd",
+        "filename": "src/com/android/providers/media/MediaProvider.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2633,
+      "author": {
+        "id": 2936
+      },
+      "writtenOn": "2014-08-29T06:46:31Z",
+      "side": 1,
+      "message": "I suspect the only thing that would use this is their version of the music app, so I\u0027d rather it be done right.",
+      "parentUuid": "7a1b2928_f9b57dd0",
+      "revId": "5622930bf35b8aa592af4cc26cd0fa2e86fd6dd0",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
     }
   ]
 }

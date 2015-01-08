@@ -16,6 +16,24 @@
       "revId": "658a46e86eca1e9f8244bdfd6d9dc3616829eea9",
       "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7aa08908_2fa02143",
+        "filename": "src/com/android/providers/media/MediaProvider.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 5005,
+      "author": {
+        "id": 6974
+      },
+      "writtenOn": "2015-01-08T15:16:34Z",
+      "side": 1,
+      "message": "Hi Ethan,\nyes you\u0027re right, I saw those checks, but I prefer to add them the same, to avoid a possible future call to fail again if those parameters are not previously checked.\nConsider it as well as a consistency check of the parameters.",
+      "parentUuid": "7aa08908_6f034943",
+      "revId": "658a46e86eca1e9f8244bdfd6d9dc3616829eea9",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
     }
   ]
 }

@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7aa08908_b54aa2c3",
+        "filename": "src/com/android/providers/media/MediaProvider.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 4563,
+      "author": {
+        "id": 10394
+      },
+      "writtenOn": "2015-01-09T14:16:12Z",
+      "side": 1,
+      "message": "would this check be better in getCompressedAlbumArt where it checks if path \u003d\u003d null and returns null at the top of the method?",
+      "revId": "e96877c1a2ca340a24adbd18c1cc0b2840f7df60",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac665da_ebdc8548",
+        "filename": "src/com/android/providers/media/MediaProvider.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 1921,
+      "author": {
+        "id": 1063
+      },
+      "writtenOn": "2015-03-16T21:58:09Z",
+      "side": 1,
+      "message": "Tab -\u003e space, and try{ -\u003e try {",
+      "revId": "170737042577a2adb53cd98efab041e3ac2e3805",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac665da_cbe1c900",
+        "filename": "src/com/android/providers/media/MediaProvider.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 1927,
+      "author": {
+        "id": 1063
+      },
+      "writtenOn": "2015-03-16T21:58:09Z",
+      "side": 1,
+      "message": "Please reduce line lengths to \u003c\u003d 100 chars",
+      "revId": "170737042577a2adb53cd98efab041e3ac2e3805",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac665da_2be7bd13",
+        "filename": "src/com/android/providers/media/MediaProvider.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 1928,
+      "author": {
+        "id": 1063
+      },
+      "writtenOn": "2015-03-16T21:58:09Z",
+      "side": 1,
+      "message": "finally {",
+      "revId": "170737042577a2adb53cd98efab041e3ac2e3805",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac665da_0be4810b",
+        "filename": "src/com/android/providers/media/MediaProvider.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 1929,
+      "author": {
+        "id": 1063
+      },
+      "writtenOn": "2015-03-16T21:58:09Z",
+      "side": 1,
+      "message": "// Nothing to do",
+      "revId": "170737042577a2adb53cd98efab041e3ac2e3805",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa7ab95a_51863eba",
+        "filename": "src/com/android/providers/media/MediaProvider.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 2936
+      },
+      "writtenOn": "2015-04-18T08:45:55Z",
+      "side": 1,
+      "message": "I think there may be a better way to detect whether the system is going down, but this makes sense.",
+      "revId": "ecd7d551ca8e1099978936a38e1c39f3d5540c8b",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    }
+  ]
+}

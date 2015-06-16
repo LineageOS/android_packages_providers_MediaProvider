@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa31d9ce_4aadb387",
+        "filename": "src/com/android/providers/media/MediaProvider.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 5332,
+      "author": {
+        "id": 2936
+      },
+      "writtenOn": "2015-06-16T05:39:07Z",
+      "side": 1,
+      "message": "Would it make sense to always try to parse volume ID from UUID unconditionally? Also it might be better to rewrite or add the volume ID function to frameworks/base/core/java/android/os/storage/StorageVolume.java instead.",
+      "revId": "c84faab3ebd54c860631100ea55bd444a754b5f7",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    }
+  ]
+}

@@ -1713,7 +1713,7 @@ public class MediaProvider extends ContentProvider {
 
         // Used temporarily (until we have unique media IDs) to get an identifier
         // for the current sd card, so that the music app doesn't have to use the
-        // non-public getFatVolumeId method
+        // non-public getVolumeId method
         if (table == FS_ID) {
             MatrixCursor c = new MatrixCursor(new String[] {"fsid"});
             c.addRow(new Integer[] {mVolumeId});
@@ -6022,8 +6022,157 @@ public class MediaProvider extends ContentProvider {
         return false;
     }
 
+<<<<<<< HEAD   (e1e3c0 MediaProvider: adaptive icon)
     private void attachVolume(Uri uri) {
         attachVolume(MediaStore.getVolumeName(uri));
+=======
+    /**
+     * Attach the database for a volume (internal or external).
+     * Does nothing if the volume is already attached, otherwise
+     * checks the volume ID and sets up the corresponding database.
+     *
+     * @param volume to attach, either {@link #INTERNAL_VOLUME} or {@link #EXTERNAL_VOLUME}.
+     * @return the content URI of the attached volume.
+     */
+    private Uri attachVolume(String volume) {
+        if (Binder.getCallingPid() != Process.myPid()) {
+            throw new SecurityException(
+                    "Opening and closing databases not allowed.");
+        }
+
+        // Update paths to reflect currently mounted volumes
+        updateStoragePaths();
+
+        DatabaseHelper helper = null;
+        synchronized (mDatabases) {
+            helper = mDatabases.get(volume);
+            if (helper != null) {
+                if (EXTERNAL_VOLUME.equals(volume)) {
+                    ensureDefaultFolders(helper, helper.getWritableDatabase());
+                }
+                return Uri.parse("content://media/" + volume);
+            }
+
+            Context context = getContext();
+            if (INTERNAL_VOLUME.equals(volume)) {
+                helper = new DatabaseHelper(context, INTERNAL_DATABASE_NAME, true,
+                        false, mObjectRemovedCallback);
+            } else if (EXTERNAL_VOLUME.equals(volume)) {
+                // Only extract volume ID for primary public
+                final VolumeInfo vol = mStorageManager.getPrimaryPhysicalVolume();
+                if (vol != null) {
+                    final StorageVolume actualVolume = mStorageManager.getPrimaryVolume();
+                    final int volumeId = actualVolume.getVolumeId();
+
+                    // Must check for failure!
+                    // If the volume is not (yet) mounted, this will create a new
+                    // external-ffffffff.db database instead of the one we expect.  Then, if
+                    // android.process.media is later killed and respawned, the real external
+                    // database will be attached, containing stale records, or worse, be empty.
+                    if (volumeId == -1) {
+                        String state = Environment.getExternalStorageState();
+                        if (Environment.MEDIA_MOUNTED.equals(state) ||
+                                Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+                            // This may happen if external storage was _just_ mounted.  It may also
+                            // happen if the volume ID is _actually_ 0xffffffff, in which case it
+                            // must be changed since FileUtils::getVolumeId doesn't allow for
+                            // that.  It may also indicate that FileUtils::getVolumeId is broken
+                            // (missing ioctl), which is also impossible to disambiguate.
+                            Log.e(TAG, "Can't obtain external volume ID even though it's mounted.");
+                        } else {
+                            Log.i(TAG, "External volume is not (yet) mounted, cannot attach.");
+                        }
+
+                        throw new IllegalArgumentException("Can't obtain external volume ID for " +
+                                volume + " volume.");
+                    }
+
+                    // generate database name based on volume ID
+                    String dbName = "external-" + Integer.toHexString(volumeId) + ".db";
+                    helper = new DatabaseHelper(context, dbName, false,
+                            false, mObjectRemovedCallback);
+                    mVolumeId = volumeId;
+                } else {
+                    // external database name should be EXTERNAL_DATABASE_NAME
+                    // however earlier releases used the external-XXXXXXXX.db naming
+                    // for devices without removable storage, and in that case we need to convert
+                    // to this new convention
+                    File dbFile = context.getDatabasePath(EXTERNAL_DATABASE_NAME);
+                    if (!dbFile.exists()
+                            && android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+                        // find the most recent external database and rename it to
+                        // EXTERNAL_DATABASE_NAME, and delete any other older
+                        // external database files
+                        File recentDbFile = null;
+                        for (String database : context.databaseList()) {
+                            if (database.startsWith("external-") && database.endsWith(".db")) {
+                                File file = context.getDatabasePath(database);
+                                if (recentDbFile == null) {
+                                    recentDbFile = file;
+                                } else if (file.lastModified() > recentDbFile.lastModified()) {
+                                    context.deleteDatabase(recentDbFile.getName());
+                                    recentDbFile = file;
+                                } else {
+                                    context.deleteDatabase(file.getName());
+                                }
+                            }
+                        }
+                        if (recentDbFile != null) {
+                            if (recentDbFile.renameTo(dbFile)) {
+                                Log.d(TAG, "renamed database " + recentDbFile.getName() +
+                                        " to " + EXTERNAL_DATABASE_NAME);
+                            } else {
+                                Log.e(TAG, "Failed to rename database " + recentDbFile.getName() +
+                                        " to " + EXTERNAL_DATABASE_NAME);
+                                // This shouldn't happen, but if it does, continue using
+                                // the file under its old name
+                                dbFile = recentDbFile;
+                            }
+                        }
+                        // else DatabaseHelper will create one named EXTERNAL_DATABASE_NAME
+                    }
+                    helper = new DatabaseHelper(context, dbFile.getName(), false,
+                            false, mObjectRemovedCallback);
+                }
+            } else {
+                throw new IllegalArgumentException("There is no volume named " + volume);
+            }
+
+            mDatabases.put(volume, helper);
+
+            if (!helper.mInternal) {
+                // clean up stray album art files: delete every file not in the database
+                File[] files = new File(mExternalStoragePaths[0], ALBUM_THUMB_FOLDER).listFiles();
+                HashSet<String> fileSet = new HashSet();
+                for (int i = 0; files != null && i < files.length; i++) {
+                    fileSet.add(files[i].getPath());
+                }
+
+                Cursor cursor = query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+                        new String[] { MediaStore.Audio.Albums.ALBUM_ART }, null, null, null);
+                try {
+                    while (cursor != null && cursor.moveToNext()) {
+                        fileSet.remove(cursor.getString(0));
+                    }
+                } finally {
+                    IoUtils.closeQuietly(cursor);
+                }
+
+                Iterator<String> iterator = fileSet.iterator();
+                while (iterator.hasNext()) {
+                    String filename = iterator.next();
+                    if (LOCAL_LOGV) Log.v(TAG, "deleting obsolete album art " + filename);
+                    new File(filename).delete();
+                }
+            }
+        }
+
+        if (LOCAL_LOGV) Log.v(TAG, "Attached volume: " + volume);
+        if (EXTERNAL_VOLUME.equals(volume)) {
+            ensureDefaultFolders(helper, helper.getWritableDatabase());
+        }
+        return Uri.parse("content://media/" + volume);
+>>>>>>> CHANGE (c0145e Fix mounting of non-FAT formatted SD cards (2/2))
     }
 
     public Uri attachVolume(String volume) {
@@ -6122,7 +6271,7 @@ public class MediaProvider extends ContentProvider {
     // name of the volume currently being scanned by the media scanner (or null)
     private String mMediaScannerVolume;
 
-    // current FAT volume ID
+    // current volume ID
     private int mVolumeId = -1;
 
     // WARNING: the values of IMAGES_MEDIA, AUDIO_MEDIA, and VIDEO_MEDIA and AUDIO_PLAYLISTS

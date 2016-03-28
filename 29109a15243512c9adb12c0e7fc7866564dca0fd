@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7faddb67_e57f17a9",
+        "filename": "AndroidManifest.xml",
+        "patchSetId": 1
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 848
+      },
+      "writtenOn": "2016-03-28T14:33:09Z",
+      "side": 1,
+      "message": "Don\u0027t do this for AOSP introduced items",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 6,
+        "endChar": 0
+      },
+      "revId": "29109a15243512c9adb12c0e7fc7866564dca0fd",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7faddb67_057d93b0",
+        "filename": "AndroidManifest.xml",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 848
+      },
+      "writtenOn": "2016-03-28T14:33:09Z",
+      "side": 1,
+      "message": "\"Any app that declares the WRITE_EXTERNAL_STORAGE permission is implicitly granted this permission.\"",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 79
+      },
+      "revId": "29109a15243512c9adb12c0e7fc7866564dca0fd",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    }
+  ]
+}

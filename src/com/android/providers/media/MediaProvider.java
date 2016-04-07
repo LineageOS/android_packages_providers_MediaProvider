@@ -5073,6 +5073,10 @@ public class MediaProvider extends ContentProvider {
     private static byte[] getCompressedAlbumArt(Context context, String[] rootPaths, String path) {
         byte[] compressed = null;
 
+        //When playing Music,plug out the SD card to cause this case.
+        if (path == null) {
+            return null;
+        }
         try {
             File f = new File(path);
             ParcelFileDescriptor pfd = ParcelFileDescriptor.open(f,

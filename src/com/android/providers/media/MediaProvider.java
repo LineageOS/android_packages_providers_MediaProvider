@@ -3775,8 +3775,8 @@ public class MediaProvider extends ContentProvider {
                     final String path = c.getString(0);
                     lastId = c.getLong(1);
 
-                    File file = new File(path);
-                    if (file.exists()) {
+                    File file = (path != null) ? new File(path) : null;
+                    if (file != null && file.exists()) {
                         // If the file actually exists, try to fix up the parent id.
                         // getParent() will add entries for any missing ancestors.
                         long parentId = getParent(helper, db, path);

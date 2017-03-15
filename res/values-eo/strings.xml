@@ -26,6 +26,7 @@
   <!-- Title for documents backend that offers images. [CHAR LIMIT=24] -->
   <string name="root_images">Bildoj</string>
   <!-- Title for documents backend that offers videos. [CHAR LIMIT=24] -->
+  <string name="root_videos">Videoj</string>
   <!-- Title for documents backend that offers audio. [CHAR LIMIT=24] -->
   <!-- Strings of localized sound names below:
          VERY IMPORTANT: the lower case version of the names must match the resource

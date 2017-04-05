@@ -41,6 +41,7 @@ import android.widget.TextView;
 import com.android.internal.app.AlertActivity;
 import com.android.internal.app.AlertController;
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -113,6 +114,8 @@ public final class RingtonePickerActivity extends AlertActivity implements
 
     private int mAttributesFlags;
 
+    private boolean mShowOkCancelButtons;
+
     /**
      * Keep the currently playing ringtone around when changing orientation, so that it
      * can be stopped later, after the activity is recreated.
@@ -128,6 +131,12 @@ public final class RingtonePickerActivity extends AlertActivity implements
         public void onClick(DialogInterface dialog, int which) {
             // Save the position of most recently clicked item
             mClickedPos = which;
+
+            // In the buttonless (watch-only) version, preemptively set our result since we won't
+            // have another chance to do so before the activity closes.
+            if (!mShowOkCancelButtons) {
+                setResultFromSelection();
+            }
 
             // Play clip
             playRingtone(which, 0);
@@ -181,6 +190,8 @@ public final class RingtonePickerActivity extends AlertActivity implements
                 RingtoneManager.EXTRA_RINGTONE_AUDIO_ATTRIBUTES_FLAGS,
                 0 /*defaultValue == no flags*/);
 
+        mShowOkCancelButtons = getResources().getBoolean(R.bool.config_showOkCancelButtons);
+
 
         mCursor = new LocalizedCursor(mRingtoneManager.getCursor(), getResources(), COLUMN_LABEL);
 
@@ -197,10 +208,12 @@ public final class RingtonePickerActivity extends AlertActivity implements
         p.mLabelColumn = COLUMN_LABEL;
         p.mIsSingleChoice = true;
         p.mOnItemSelectedListener = this;
-        p.mPositiveButtonText = getString(com.android.internal.R.string.ok);
-        p.mPositiveButtonListener = this;
-        p.mNegativeButtonText = getString(com.android.internal.R.string.cancel);
-        p.mPositiveButtonListener = this;
+        if (mShowOkCancelButtons) {
+            p.mPositiveButtonText = getString(com.android.internal.R.string.ok);
+            p.mPositiveButtonListener = this;
+            p.mNegativeButtonText = getString(com.android.internal.R.string.cancel);
+            p.mPositiveButtonListener = this;
+        }
         p.mOnPrepareListViewListener = this;
 
         p.mTitle = intent.getCharSequenceExtra(RingtoneManager.EXTRA_RINGTONE_TITLE);
@@ -239,6 +252,11 @@ public final class RingtonePickerActivity extends AlertActivity implements
             mClickedPos = getListPosition(mRingtoneManager.getRingtonePosition(mExistingUri));
         }
 
+        // In the buttonless (watch-only) version, preemptively set our result since we won't
+        // have another chance to do so before the activity closes.
+        if (!mShowOkCancelButtons) {
+            setResultFromSelection();
+        }
         // Put a checkmark next to an item.
         mAlertParams.mCheckedItem = mClickedPos;
     }
@@ -284,21 +302,7 @@ public final class RingtonePickerActivity extends AlertActivity implements
         mRingtoneManager.stopPreviousRingtone();
 
         if (positiveResult) {
-            Intent resultIntent = new Intent();
-            Uri uri = null;
-
-            if (mClickedPos == mDefaultRingtonePos) {
-                // Set it to the default Uri that they originally gave us
-                uri = mUriForDefaultItem;
-            } else if (mClickedPos == mSilentPos) {
-                // A null Uri is for the 'Silent' item
-                uri = null;
-            } else {
-                uri = mRingtoneManager.getRingtoneUri(getRingtoneManagerPosition(mClickedPos));
-            }
-
-            resultIntent.putExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI, uri);
-            setResult(RESULT_OK, resultIntent);
+            setResultFromSelection();
         } else {
             setResult(RESULT_CANCELED);
         }
@@ -310,7 +314,14 @@ public final class RingtonePickerActivity extends AlertActivity implements
      * On item selected via keys
      */
     public void onItemSelected(AdapterView parent, View view, int position, long id) {
+        mClickedPos = position;
         playRingtone(position, DELAY_MS_SELECTION_PLAYED);
+
+        // In the buttonless (watch-only) version, preemptively set our result since we won't
+        // have another chance to do so before the activity closes.
+        if (!mShowOkCancelButtons) {
+            setResultFromSelection();
+        }
     }
 
     public void onNothingSelected(AdapterView parent) {
@@ -383,6 +394,29 @@ public final class RingtonePickerActivity extends AlertActivity implements
         super.onPause();
         if (!isChangingConfigurations()) {
             stopAnyPlayingRingtone();
+        }
+    }
+
+    private void setResultFromSelection() {
+        // Obtain the currently selected ringtone
+        Uri uri = null;
+        if (mClickedPos == mDefaultRingtonePos) {
+            // Set it to the default Uri that they originally gave us
+            uri = mUriForDefaultItem;
+        } else if (mClickedPos == mSilentPos) {
+            // A null Uri is for the 'Silent' item
+            uri = null;
+        } else {
+            uri = mRingtoneManager.getRingtoneUri(getRingtoneManagerPosition(mClickedPos));
+        }
+
+        // Return new URI if another ringtone was selected, as there's no ok/cancel button
+        if (Objects.equals(uri, mExistingUri)) {
+            setResult(RESULT_CANCELED);
+        } else {
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI, uri);
+            setResult(RESULT_OK, resultIntent);
         }
     }
 

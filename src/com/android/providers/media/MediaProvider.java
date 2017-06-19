@@ -4303,7 +4303,7 @@ public class MediaProvider extends ContentProvider {
                     // Do not allow deletion if the file/object is referenced as parent
                     // by some other entries. It could cause database corruption.
                     if (!TextUtils.isEmpty(sGetTableAndWhereParam.where)) {
-                        sGetTableAndWhereParam.where =
+                        sGetTableAndWhereParam.where +=
                                 "(" + sGetTableAndWhereParam.where + ")" +
                                         " AND (_id NOT IN (SELECT parent FROM files" +
                                         " WHERE NOT (" + sGetTableAndWhereParam.where + ")))";

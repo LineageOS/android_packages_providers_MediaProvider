@@ -32,15 +32,24 @@
                          resource name is preceded by "sound_name_".
     -->
   <!-- Name of alarm in the alarm sound picker: theme:motion, style:ambient tempo:flowing -->
+  <string name="sound_name_awaken">Deffro</string>
   <!-- Name of alarm in the alarm sound picker: theme:motion, style:soft pure tones
          tempo:initially downtempo -->
+  <string name="sound_name_bounce">Bownsio</string>
   <!-- Name of alarm in the alarm sound picker: theme:motion, style:traditional tempo:mid -->
+  <string name="sound_name_drip">Diferu</string>
   <!-- Name of alarm in the alarm sound picker: theme:motion, style:rhythmic tempo:up-tempo -->
+  <string name="sound_name_gallop">Carlamu</string>
   <!-- Name of alarm in the alarm sound picker: theme:motion, style:traditional tempo:mid -->
+  <string name="sound_name_nudge">Pwtio</string>
   <!-- Name of alarm in the alarm sound picker: theme:motion, style:traditional tempo:mid -->
+  <string name="sound_name_orbit">Cylchdroi</string>
   <!-- Name of alarm in the alarm sound picker: theme:motion, style:digital tempo:mid -->
+  <string name="sound_name_rise">Codi</string>
   <!-- Name of alarm in the alarm sound picker: theme:motion, style:musical tempo:swaying -->
+  <string name="sound_name_sway">Siglo</string>
   <!-- Name of alarm in the alarm sound picker: theme:motion, style:sound design tempo:mid -->
+  <string name="sound_name_wag">Ysgwyd</string>
   <!--  When adding sounds as overlays, you can use the resources defined below.
           For the translation of the names to be picked up by the RingtonePicker:
           - in the sound files, set the "TITLE" tag as "alarm_XX" or "notification_XX"

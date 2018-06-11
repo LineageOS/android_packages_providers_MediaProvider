@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f2ee3319_713fd956",
+        "filename": "src/com/android/providers/media/MediaProvider.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2118,
+      "author": {
+        "id": 13028
+      },
+      "writtenOn": "2018-06-11T17:16:49Z",
+      "side": 1,
+      "message": "? Should be \"This\", not \"his\"\nApart from that, is the comment change really required?",
+      "revId": "71218cabcc3e214992cc18f6ac6868a67fa0e89b",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    }
+  ]
+}

@@ -24,7 +24,7 @@
   <!-- Description line for music artists in the search/suggestion results -->
   <string name="artist_label">Artist</string>
   <!-- Choice in the ringtone picker.  If chosen, the default ringtone will be used. -->
-  <string name="ringtone_default">Tôn canu rhagosodedig</string>
+  <string name="ringtone_default">Tôn caniad rhagosodedig</string>
   <!-- Choice in the notification sound picker.  If chosen, the default notification sound will be
          used. -->
   <string name="notification_sound_default">Sain hysbysiad rhagosodedig</string>
@@ -62,9 +62,13 @@
   <!-- Name of alarm in the alarm sound picker: theme:motion, style:sound design tempo:mid -->
   <string name="sound_name_wag">Ysgwyd</string>
   <!-- Text for the RingtonePicker item that allows adding a new ringtone. -->
+  <string name="add_ringtone_text">Ychwanegu tôn caniad</string>
   <!-- Text for the RingtonePicker item ContextMenu that allows deleting a custom ringtone. -->
+  <string name="delete_ringtone_text">Dileu</string>
   <!-- Text for the Toast displayed when adding a custom ringtone fails. -->
+  <string name="unable_to_add_ringtone">Methu ag ychwanegu tôn caniad personol</string>
   <!-- Text for the Toast displayed when deleting a custom ringtone fails. -->
+  <string name="unable_to_delete_ringtone">Methu â dileu tôn caniad personol</string>
   <!--  When adding sounds as overlays, you can use the resources defined below.
           For the translation of the names to be picked up by the RingtonePicker:
           - in the sound files, set the "TITLE" tag as "alarm_XX" or "notification_XX"

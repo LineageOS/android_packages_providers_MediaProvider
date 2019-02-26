@@ -26,7 +26,9 @@
     <string name="ringtone_default">Timbre por defeutu</string>
     <!-- Choice in the notification sound picker.  If chosen, the default notification sound will be
          used. -->
+    <string name="notification_sound_default">Soníu d\'avisu predetermináu</string>
     <!-- Choice in the alarm sound picker.  If chosen, the default alarm sound will be used. -->
+    <string name="alarm_sound_default">Soníu d\'alarma predetermináu</string>
     <!-- Title for documents backend that offers images. [CHAR LIMIT=24] -->
     <string name="root_images">Imáxenes</string>
     <!-- Title for documents backend that offers videos. [CHAR LIMIT=24] -->

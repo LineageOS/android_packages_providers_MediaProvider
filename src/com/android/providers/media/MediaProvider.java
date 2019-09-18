@@ -2748,8 +2748,7 @@ public class MediaProvider extends ContentProvider {
     private void assertFileColumnsSane(int match, Uri uri, ContentValues values)
             throws VolumeArgumentException, VolumeNotFoundException {
         if (!values.containsKey(MediaColumns.DATA)) return;
-
-        final String volumeName = resolveVolumeName(uri);
+        final String volumeName = resolveVolumeName(uri, values.getAsString(MediaColumns.DATA));
         try {
             // Sanity check that the requested path actually lives on volume
             final Collection<File> allowed = getVolumeScanPaths(volumeName);
@@ -3213,6 +3212,19 @@ public class MediaProvider extends ContentProvider {
         final String volumeName = getVolumeName(uri);
         if (MediaStore.VOLUME_EXTERNAL.equals(volumeName)) {
             return MediaStore.VOLUME_EXTERNAL_PRIMARY;
+        } else {
+            return volumeName;
+        }
+    }
+
+    private static @NonNull String resolveVolumeName(@NonNull Uri uri, @NonNull String path) {
+        final String volumeName = getVolumeName(uri);
+        if (MediaStore.VOLUME_EXTERNAL.equals(volumeName)) {
+            if (path != null) {
+                return getVolumeName(new File(path));
+            } else {
+                return MediaStore.VOLUME_EXTERNAL_PRIMARY;
+            }
         } else {
             return volumeName;
         }

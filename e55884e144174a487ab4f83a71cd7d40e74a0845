@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "17e88062_65643533",
+        "filename": "src/com/android/providers/media/MediaService.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 11883
+      },
+      "writtenOn": "2019-10-21T12:25:11Z",
+      "side": 1,
+      "message": "wouldn\u0027t a map make more sense?",
+      "revId": "e55884e144174a487ab4f83a71cd7d40e74a0845",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": true
+    }
+  ]
+}

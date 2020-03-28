@@ -14,7 +14,11 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="artist_label">Artisto</string>
-    <string name="root_images">Bildoj</string>
-    <string name="root_videos">Videoj</string>
+    <string name="app_label">Stòras nam meadhanan</string>
+    <string name="artist_label">Neach-ciùil</string>
+    <string name="root_images">Dealbhan</string>
+    <string name="root_videos">Videothan</string>
+    <string name="root_audio">Fuaimean</string>
+    <string name="sound_name_orbit">Reul-chuairt</string>
+    <string name="sound_name_rise">Èirigh</string>
 </resources>

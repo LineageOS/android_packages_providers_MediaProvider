@@ -5234,7 +5234,7 @@ public class MediaProvider extends ContentProvider {
                     throw new FileNotFoundException();
             }
         } catch (IOException e) {
-            Log.w(TAG, e);
+            if (DEBUG) Log.w(TAG, e);
             throw new FileNotFoundException(e.getMessage());
         } finally {
             restoreLocalCallingIdentity(token);
@@ -6099,6 +6099,7 @@ public class MediaProvider extends ContentProvider {
 
     static final String TAG = "MediaProvider";
     static final boolean LOCAL_LOGV = Log.isLoggable(TAG, Log.VERBOSE);
+    static final boolean DEBUG = false;
 
     private static final String INTERNAL_DATABASE_NAME = "internal.db";
     private static final String EXTERNAL_DATABASE_NAME = "external.db";

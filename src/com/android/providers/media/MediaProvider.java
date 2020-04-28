@@ -5819,7 +5819,7 @@ public class MediaProvider extends ContentProvider {
                     throw new FileNotFoundException();
             }
         } catch (IOException e) {
-            Log.w(TAG, e);
+            if (LOCAL_LOGV) Log.w(TAG, e);
             throw new FileNotFoundException(e.getMessage());
         } finally {
             restoreLocalCallingIdentity(token);

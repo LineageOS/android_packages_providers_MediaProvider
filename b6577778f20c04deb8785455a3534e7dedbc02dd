@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ab5d988_75b01369",
+        "filename": "src/com/android/providers/media/MediaProvider.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 5237,
+      "author": {
+        "id": 11883
+      },
+      "writtenOn": "2020-04-28T20:48:46Z",
+      "side": 1,
+      "message": "use LOCAL_LOGV",
+      "revId": "b6577778f20c04deb8785455a3534e7dedbc02dd",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": true
+    }
+  ]
+}

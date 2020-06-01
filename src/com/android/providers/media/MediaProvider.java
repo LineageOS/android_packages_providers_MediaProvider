@@ -4601,6 +4601,14 @@ public class MediaProvider extends ContentProvider {
                 }
 
                 Trace.traceEnd(TRACE_TAG_DATABASE);
+            } else {
+                // If we're publishing this item, perform a blocking scan to
+                // make sure metadata is updated
+                if (initialValues.containsKey(MediaColumns.IS_PENDING)) {
+                    if ("com.android.systemui".equals(getCallingPackageOrSelf())) {
+                        triggerScan = true;
+                    }
+                }
             }
 
             genre = initialValues.getAsString(Audio.AudioColumns.GENRE);

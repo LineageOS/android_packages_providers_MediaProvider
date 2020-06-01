@@ -1215,6 +1215,18 @@ public class ModernMediaScanner implements MediaScanner {
     static @NonNull Optional<Long> parseOptionalDateTaken(@NonNull ExifInterface exif,
             long lastModifiedTime) {
         final long originalTime = ExifUtils.getDateTimeOriginal(exif);
+
+        // First check that originalTime is valid
+        if (originalTime == -1) {
+            // Try use DateTime tag if originalTime is not valid
+            final long dateTime = ExifUtils.getDateTime(exif);
+            if (dateTime == -1) {
+                // If originalTime and dateTime is not valid, then just return lastModifiedTime
+                return Optional.of(lastModifiedTime);
+            }
+            return Optional.of(dateTime);
+        }
+
         if (exif.hasAttribute(ExifInterface.TAG_OFFSET_TIME_ORIGINAL)) {
             // We have known offset information, return it directly!
             return Optional.of(originalTime);
@@ -1236,7 +1248,7 @@ public class ModernMediaScanner implements MediaScanner {
                     return Optional.of(originalTime + rounded);
                 }
             }
-            return Optional.empty();
+            return Optional.of(originalTime);
         }
     }
 

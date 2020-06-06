@@ -352,7 +352,7 @@ public class ModernMediaScanner implements MediaScanner {
             // Possibly bail before digging into each directory
             mSignal.throwIfCanceled();
 
-            if (isDirectoryHidden(dir.toFile())) {
+            if (isDirectoryHiddenRecursive(dir.toFile())) {
                 return FileVisitResult.SKIP_SUBTREE;
             }
 

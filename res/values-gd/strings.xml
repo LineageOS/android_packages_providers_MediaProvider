@@ -19,6 +19,13 @@
     <string name="root_images">Dealbhan</string>
     <string name="root_videos">Videothan</string>
     <string name="root_audio">Fuaimean</string>
+    <string name="sound_name_awaken">Dùsgadh</string>
+    <string name="sound_name_bounce">Leum</string>
+    <string name="sound_name_drip">Sileadh</string>
+    <string name="sound_name_gallop">Each</string>
+    <string name="sound_name_nudge">Putadh</string>
     <string name="sound_name_orbit">Reul-chuairt</string>
     <string name="sound_name_rise">Èirigh</string>
+    <string name="sound_name_sway">Luasgadh</string>
+    <string name="sound_name_wag">Bogadh</string>
 </resources>

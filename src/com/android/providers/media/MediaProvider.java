@@ -6403,6 +6403,7 @@ public class MediaProvider extends ContentProvider {
     @NonNull
     public long[] getRedactionRangesForFuse(String path, int uid, int tid) throws IOException {
         final File file = new File(path);
+        long[] res = new long[0];
 
         // When we're calculating redaction ranges for MediaProvider, it means we're actually
         // calculating redaction ranges for another app that called to MediaProvider through Binder.
@@ -6413,16 +6414,19 @@ public class MediaProvider extends ContentProvider {
                 shouldRedact = mShouldRedactThreadIds.indexOf(tid) != -1;
             }
             if (shouldRedact) {
-                return getRedactionRanges(file).redactionRanges;
-            } else {
-                return new long[0];
+                res = getRedactionRanges(file).redactionRanges;
+                // FUSE zeroes all bytes including the end position while ranges are calculated
+                // expecting that the end position is excluded.
+                for (int i = 1; i < res.length; i += 2) {
+                    res[i] -= 1;
+                }
             }
+            return res;
         }
 
         final LocalCallingIdentity token =
                 clearLocalCallingIdentity(getCachedCallingIdentityForFuse(uid));
 
-        long[] res = new long[0];
         try {
             if (!isRedactionNeeded()
                     || shouldBypassFuseRestrictions(/*forWrite*/ false, path)) {
@@ -6458,6 +6462,11 @@ public class MediaProvider extends ContentProvider {
 
             if (!callerIsOwner && !callerHasUriPermission) {
                 res = getRedactionRanges(file).redactionRanges;
+                // FUSE zeroes all bytes including the end position while ranges are calculated
+                // expecting that the end position is excluded.
+                for (int i = 1; i < res.length; i += 2) {
+                    res[i] -= 1;
+                }
             }
         } finally {
             restoreLocalCallingIdentity(token);

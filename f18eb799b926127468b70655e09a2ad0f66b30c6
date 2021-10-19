@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f43840c6_3c7998fa",
+        "filename": "src/com/android/providers/media/scan/ModernMediaScanner.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 1215,
+      "author": {
+        "id": 11883
+      },
+      "writtenOn": "2021-10-19T08:12:39Z",
+      "side": 1,
+      "message": "I don\u0027t think optional is the proper type, we always return something",
+      "revId": "f18eb799b926127468b70655e09a2ad0f66b30c6",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": true
+    }
+  ]
+}

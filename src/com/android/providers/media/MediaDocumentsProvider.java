@@ -16,6 +16,24 @@
 
 package com.android.providers.media;
 
+import static android.os.ParcelFileDescriptor.MODE_APPEND;
+import static android.os.ParcelFileDescriptor.MODE_CREATE;
+import static android.os.ParcelFileDescriptor.MODE_READ_ONLY;
+import static android.os.ParcelFileDescriptor.MODE_READ_WRITE;
+import static android.os.ParcelFileDescriptor.MODE_TRUNCATE;
+import static android.os.ParcelFileDescriptor.MODE_WRITE_ONLY;
+
+import static android.system.OsConstants.O_APPEND;
+import static android.system.OsConstants.O_CLOEXEC;
+import static android.system.OsConstants.O_CREAT;
+import static android.system.OsConstants.O_NOFOLLOW;
+import static android.system.OsConstants.O_RDONLY;
+import static android.system.OsConstants.O_RDWR;
+import static android.system.OsConstants.O_TRUNC;
+import static android.system.OsConstants.O_WRONLY;
+import static android.system.OsConstants.S_IRWXG;
+import static android.system.OsConstants.S_IRWXU;
+
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
@@ -47,6 +65,8 @@ import android.provider.MediaStore.Images;
 import android.provider.MediaStore.Images.ImageColumns;
 import android.provider.MediaStore.Video;
 import android.provider.MediaStore.Video.VideoColumns;
+import android.system.ErrnoException;
+import android.system.Os;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.util.Log;
@@ -54,7 +74,9 @@ import android.util.Log;
 import libcore.io.IoUtils;
 
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 /**
  * Presents a {@link DocumentsContract} view of {@link MediaProvider} external
@@ -799,7 +821,7 @@ public class MediaDocumentsProvider extends DocumentsProvider {
                     null, signal);
             if (cursor.moveToFirst()) {
                 final String data = cursor.getString(ImageThumbnailQuery._DATA);
-                return ParcelFileDescriptor.open(
+                return openSafely(
                         new File(data), ParcelFileDescriptor.MODE_READ_ONLY);
             }
         } finally {
@@ -886,7 +908,7 @@ public class MediaDocumentsProvider extends DocumentsProvider {
                     null, signal);
             if (cursor.moveToFirst()) {
                 final String data = cursor.getString(VideoThumbnailQuery._DATA);
-                return new AssetFileDescriptor(ParcelFileDescriptor.open(
+                return new AssetFileDescriptor(openSafely(
                         new File(data), ParcelFileDescriptor.MODE_READ_ONLY), 0,
                         AssetFileDescriptor.UNKNOWN_LENGTH);
             }
@@ -945,5 +967,60 @@ public class MediaDocumentsProvider extends DocumentsProvider {
             return displayName;
         }
         return getContext().getResources().getString(com.android.internal.R.string.unknownName);
+    }
+
+    /**
+     * Drop-in replacement for {@link ParcelFileDescriptor#open(File, int)}
+     * which adds security features like {@link OsConstants#O_CLOEXEC} and
+     * {@link OsConstants#O_NOFOLLOW}.
+     */
+    public static ParcelFileDescriptor openSafely(File file, int pfdFlags)
+            throws FileNotFoundException {
+        final int posixFlags = translateModePfdToPosix(pfdFlags) | O_CLOEXEC | O_NOFOLLOW;
+        try {
+            final FileDescriptor fd = Os.open(file.getAbsolutePath(), posixFlags,
+                    S_IRWXU | S_IRWXG);
+            try {
+                return ParcelFileDescriptor.dup(fd);
+            } finally {
+                closeQuietly(fd);
+            }
+        } catch (IOException | ErrnoException e) {
+            throw new FileNotFoundException(e.getMessage());
+        }
+    }
+
+    private static void closeQuietly(FileDescriptor fd) {
+        if (fd == null) return;
+        try {
+            Os.close(fd);
+        } catch (ErrnoException ignored) {
+        }
+    }
+
+    /**
+     * Shamelessly borrowed from {@code android.os.FileUtils}.
+     */
+    private static int translateModePfdToPosix(int mode) {
+        int res = 0;
+        if ((mode & MODE_READ_WRITE) == MODE_READ_WRITE) {
+            res = O_RDWR;
+        } else if ((mode & MODE_WRITE_ONLY) == MODE_WRITE_ONLY) {
+            res = O_WRONLY;
+        } else if ((mode & MODE_READ_ONLY) == MODE_READ_ONLY) {
+            res = O_RDONLY;
+        } else {
+            throw new IllegalArgumentException("Bad mode: " + mode);
+        }
+        if ((mode & MODE_CREATE) == MODE_CREATE) {
+            res |= O_CREAT;
+        }
+        if ((mode & MODE_TRUNCATE) == MODE_TRUNCATE) {
+            res |= O_TRUNC;
+        }
+        if ((mode & MODE_APPEND) == MODE_APPEND) {
+            res |= O_APPEND;
+        }
+        return res;
     }
 }

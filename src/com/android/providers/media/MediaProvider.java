@@ -5035,7 +5035,7 @@ public class MediaProvider extends ContentProvider {
             file = Environment.maybeTranslateEmulatedPathToInternal(file);
         }
 
-        return ParcelFileDescriptor.open(file, modeBits);
+        return MediaDocumentsProvider.openSafely(file, modeBits);
     }
 
     private void deleteIfAllowed(Uri uri, String path) {
@@ -5268,7 +5268,7 @@ public class MediaProvider extends ContentProvider {
         }
         try {
             File f = new File(path);
-            ParcelFileDescriptor pfd = ParcelFileDescriptor.open(f,
+            ParcelFileDescriptor pfd = MediaDocumentsProvider.openSafely(f,
                     ParcelFileDescriptor.MODE_READ_ONLY);
 
             try (MediaScanner scanner = new MediaScanner(context, INTERNAL_VOLUME)) {

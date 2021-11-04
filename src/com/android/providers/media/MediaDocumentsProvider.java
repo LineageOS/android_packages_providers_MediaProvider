@@ -1065,7 +1065,7 @@ public class MediaDocumentsProvider extends DocumentsProvider {
                     null, signal);
             if (cursor.moveToFirst()) {
                 final String data = cursor.getString(ImageThumbnailQuery._DATA);
-                return ParcelFileDescriptor.open(
+                return MediaProvider.openSafely(
                         new File(data), ParcelFileDescriptor.MODE_READ_ONLY);
             }
         } finally {
@@ -1152,7 +1152,7 @@ public class MediaDocumentsProvider extends DocumentsProvider {
                     null, signal);
             if (cursor.moveToFirst()) {
                 final String data = cursor.getString(VideoThumbnailQuery._DATA);
-                return new AssetFileDescriptor(ParcelFileDescriptor.open(
+                return new AssetFileDescriptor(MediaProvider.openSafely(
                         new File(data), ParcelFileDescriptor.MODE_READ_ONLY), 0,
                         AssetFileDescriptor.UNKNOWN_LENGTH);
             }

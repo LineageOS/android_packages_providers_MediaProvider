@@ -15,19 +15,13 @@
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <!-- Label to show to user for all apps using this UID. -->
-    <string name="uid_label">Medien</string>
     <!-- Label to show client applications a short description of storage location -->
     <!-- Label to show to user for this package. -->
-    <string name="app_label">Mediespäicher</string>
     <!-- Description line for music artists in the search/suggestion results -->
-    <string name="artist_label">Kënschtler</string>
     <!-- Label for a file or directory which has no valid user-visible description [CHAR LIMIT=32] -->
     <!-- Title for documents backend that offers images. [CHAR LIMIT=24] -->
-    <string name="root_images">Biller</string>
     <!-- Title for documents backend that offers videos. [CHAR LIMIT=24] -->
-    <string name="root_videos">Videoen</string>
     <!-- Title for documents backend that offers audio. [CHAR LIMIT=24] -->
-    <string name="root_audio">Audio</string>
     <!-- Title for documents backend that offers documents. [CHAR LIMIT=24] -->
     <!-- Message telling users that the app must request permission before working with a media item. [CHAR LIMIT=128] -->
     <!-- Button text that users can click on to request permission before working with a media item. [CHAR LIMIT=32] -->

@@ -15,14 +15,22 @@
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="uid_label">Meadhanan</string>
+    <string name="storage_description">Stòras ionadail</string>
     <string name="app_label">Stòras nam meadhanan</string>
     <string name="artist_label">Neach-ciùil</string>
-    <string name="ringtone_default">Seirm thùsail</string>
-    <string name="notification_sound_default">Fuaim thùsail nam brathan</string>
-    <string name="alarm_sound_default">Fuaim thùsail nan caismeachdan</string>
+    <string name="ringtone_default">An t-seirm bhunaiteach</string>
+    <string name="notification_sound_default">Fuaim bhunaiteach nam brathan</string>
+    <string name="alarm_sound_default">Fuaim bhunaiteach nan caismeachdan</string>
     <string name="root_images">Dealbhan</string>
     <string name="root_videos">Videothan</string>
     <string name="root_audio">Fuaimean</string>
+    <string name="permission_required">The feum air cead gus an nì seo atharrachadh no a sguabadh às.</string>
+    <string name="permission_required_action">Lean air adhart</string>
+    <string name="permission_audio">An doir thu cead dha <b><xliff:g id="app_name" example="Gmail">^1</xliff:g></b> airson an ceòl seo atharrachadh no a sguabadh às?</string>
+    <string name="permission_video">An doir thu cead dha <b><xliff:g id="app_name" example="Gmail">^1</xliff:g></b> airson a’ video seo atharrachadh no a sguabadh às?</string>
+    <string name="permission_images">An doir thu cead dha <b><xliff:g id="app_name" example="Gmail">^1</xliff:g></b> airson an dealbh seo atharrachadh no a sguabadh às?</string>
+    <string name="grant_dialog_button_allow">Ceadaich</string>
+    <string name="grant_dialog_button_deny">Diùlt</string>
     <string name="sound_name_awaken">Dùsgadh</string>
     <string name="sound_name_bounce">Leum</string>
     <string name="sound_name_drip">Sileadh</string>
@@ -32,4 +40,10 @@
     <string name="sound_name_rise">Èirigh</string>
     <string name="sound_name_sway">Luasgadh</string>
     <string name="sound_name_wag">Bogadh</string>
+    <string name="add_ringtone_text">Cuir seirm ris</string>
+    <string name="add_alarm_text">Cuir caismeachd ris</string>
+    <string name="add_notification_text">Cuir brath ris</string>
+    <string name="delete_ringtone_text">Sguab às</string>
+    <string name="unable_to_add_ringtone">Cha b’ urrainn dhuinn an t-seirm ghnàthaichte a chur ris</string>
+    <string name="unable_to_delete_ringtone">Cha b’ urrainn dhuinn an t-seirm ghnàthaichte a sguabadh às</string>
 </resources>

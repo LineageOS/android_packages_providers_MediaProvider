@@ -15,11 +15,12 @@
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="uid_label">Meadhanan</string>
+    <string name="storage_description">Stòras ionadail</string>
     <string name="app_label">Stòras nam meadhanan</string>
     <string name="artist_label">Neach-ciùil</string>
-    <string name="ringtone_default">Seirm thùsail</string>
-    <string name="notification_sound_default">Fuaim thùsail nam brathan</string>
-    <string name="alarm_sound_default">Fuaim thùsail nan caismeachdan</string>
+    <string name="ringtone_default">An t-seirm bhunaiteach</string>
+    <string name="notification_sound_default">Fuaim bhunaiteach nam brathan</string>
+    <string name="alarm_sound_default">Fuaim bhunaiteach nan caismeachdan</string>
     <string name="root_images">Dealbhan</string>
     <string name="root_videos">Videothan</string>
     <string name="root_audio">Fuaimean</string>
@@ -32,4 +33,8 @@
     <string name="sound_name_rise">Èirigh</string>
     <string name="sound_name_sway">Luasgadh</string>
     <string name="sound_name_wag">Bogadh</string>
+    <string name="add_ringtone_text">Cuir seirm ris</string>
+    <string name="delete_ringtone_text">Sguab às</string>
+    <string name="unable_to_add_ringtone">Cha b’ urrainn dhuinn an t-seirm ghnàthaichte a chur ris</string>
+    <string name="unable_to_delete_ringtone">Cha b’ urrainn dhuinn an t-seirm ghnàthaichte a sguabadh às</string>
 </resources>

@@ -23,13 +23,4 @@
     <string name="root_images">Imáxenes</string>
     <string name="root_videos">Vídeos</string>
     <string name="root_audio">Audiu</string>
-    <string name="sound_name_awaken">Awaken</string>
-    <string name="sound_name_bounce">Bounce</string>
-    <string name="sound_name_drip">Drip</string>
-    <string name="sound_name_gallop">Gallop</string>
-    <string name="sound_name_nudge">Nudge</string>
-    <string name="sound_name_orbit">Orbit</string>
-    <string name="sound_name_rise">Rise</string>
-    <string name="sound_name_sway">Sway</string>
-    <string name="sound_name_wag">Wag</string>
 </resources>

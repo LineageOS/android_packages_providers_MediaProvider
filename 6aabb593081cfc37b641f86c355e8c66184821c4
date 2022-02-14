@@ -16,6 +16,24 @@
       "message": "This backport should also replace the instances of \"ParcelFileDescriptor.open\" in src/com/android/providers/media/MediaDocumentsProvider.java",
       "revId": "6aabb593081cfc37b641f86c355e8c66184821c4",
       "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "41a7c7c6_858ef2f1",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 12604
+      },
+      "writtenOn": "2022-02-14T19:27:27Z",
+      "side": 1,
+      "message": "See cm-14.1 branch for example on backport.  All instances of \"ParcelFileDescriptor.open\" were moved into MediaProvider.java only in \u003e\u003d lineage-17.1.",
+      "parentUuid": "81bfa4fe_de509073",
+      "revId": "6aabb593081cfc37b641f86c355e8c66184821c4",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
     }
   ]
 }

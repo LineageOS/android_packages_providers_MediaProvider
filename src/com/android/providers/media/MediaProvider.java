@@ -1514,16 +1514,18 @@ public class MediaProvider extends ContentProvider {
                 return new String[] {""};
             }
 
-            // Do not allow apps to list Android/data or Android/obb dirs. Installer and
-            // MOUNT_EXTERNAL_ANDROID_WRITABLE apps won't be blocked by this, as their OBB dirs
-            // are mounted to lowerfs directly.
+            if (shouldBypassFuseRestrictions(/*forWrite*/ false, path)) {
+                return new String[] {"/"};
+            }
+
+            // Do not allow apps to list Android/data or Android/obb dirs.
+            // On primary volumes, apps that get special access to these directories get it via
+            // mount views of lowerfs. On secondary volumes, such apps would return early from
+            // shouldBypassFuseRestrictions above.
             if (isDataOrObbPath(path)) {
                 return new String[] {""};
             }
 
-            if (shouldBypassFuseRestrictions(/*forWrite*/ false, path)) {
-                return new String[] {"/"};
-            }
             // Legacy apps that made is this far don't have the right storage permission and hence
             // are not allowed to access anything other than their external app directory
             if (isCallingPackageRequestingLegacy()) {
@@ -7068,16 +7070,18 @@ public class MediaProvider extends ContentProvider {
                 return OsConstants.ENOENT;
             }
 
-            // Do not allow apps to open Android/data or Android/obb dirs. Installer and
-            // MOUNT_EXTERNAL_ANDROID_WRITABLE apps won't be blocked by this, as their OBB dirs
-            // are mounted to lowerfs directly.
+            if (shouldBypassFuseRestrictions(forWrite, path)) {
+                return 0;
+            }
+
+            // Do not allow apps to open Android/data or Android/obb dirs.
+            // On primary volumes, apps that get special access to these directories get it via
+            // mount views of lowerfs. On secondary volumes, such apps would return early from
+            // shouldBypassFuseRestrictions above.
             if (isDataOrObbPath(path)) {
                 return OsConstants.EACCES;
             }
 
-            if (shouldBypassFuseRestrictions(forWrite, path)) {
-                return 0;
-            }
             // Legacy apps that made is this far don't have the right storage permission and hence
             // are not allowed to access anything other than their external app directory
             if (isCallingPackageRequestingLegacy()) {

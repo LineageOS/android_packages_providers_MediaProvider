@@ -39,6 +39,8 @@ import static android.provider.MediaStore.UNKNOWN_STRING;
 import static android.text.format.DateUtils.HOUR_IN_MILLIS;
 import static android.text.format.DateUtils.MINUTE_IN_MILLIS;
 
+import static java.util.Objects.requireNonNull;
+
 import android.annotation.CurrentTimeMillisLong;
 import android.annotation.CurrentTimeSecondsLong;
 import android.annotation.NonNull;
@@ -161,7 +163,15 @@ public class ModernMediaScanner implements MediaScanner {
     }
 
     @Override
-    public void scanDirectory(File file) {
+    public void scanDirectory(@NonNull File file) {
+        requireNonNull(file);
+        try {
+            file = file.getCanonicalFile();
+        } catch (IOException e) {
+            Log.e(TAG, "Couldn't canonicalize directory to scan" + file, e);
+            return;
+        }
+
         try (Scan scan = new Scan(file)) {
             scan.run();
         } catch (OperationCanceledException ignored) {
@@ -169,7 +179,16 @@ public class ModernMediaScanner implements MediaScanner {
     }
 
     @Override
-    public Uri scanFile(File file) {
+    @Nullable
+    public Uri scanFile(@NonNull File file) {
+        requireNonNull(file);
+        try {
+            file = file.getCanonicalFile();
+        } catch (IOException e) {
+            Log.e(TAG, "Couldn't canonicalize file to scan" + file, e);
+            return null;
+        }
+
         try (Scan scan = new Scan(file)) {
             scan.run();
             return scan.mFirstResult;

@@ -16,16 +16,23 @@
 
 package com.android.providers.media.scan;
 
+import static java.util.Objects.requireNonNull;
+
+import android.annotation.NonNull;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Trace;
 import android.provider.MediaStore;
+import android.util.Log;
 
 import libcore.net.MimeUtils;
 
 import java.io.File;
+import java.io.IOException;
 
 public class LegacyMediaScanner implements MediaScanner {
+    private static final String TAG = "LegacyMediaScanner";
+
     private final Context mContext;
 
     public LegacyMediaScanner(Context context) {
@@ -39,6 +46,14 @@ public class LegacyMediaScanner implements MediaScanner {
 
     @Override
     public void scanDirectory(File file) {
+        requireNonNull(file);
+        try {
+            file = file.getCanonicalFile();
+        } catch (IOException e) {
+            Log.e(TAG, "Couldn't canonicalize directory to scan" + file, e);
+            return;
+        }
+
         final String path = file.getAbsolutePath();
         final String volumeName = MediaStore.getVolumeName(file);
 
@@ -52,7 +67,15 @@ public class LegacyMediaScanner implements MediaScanner {
     }
 
     @Override
-    public Uri scanFile(File file) {
+    public Uri scanFile(@NonNull File file) {
+        requireNonNull(file);
+        try {
+            file = file.getCanonicalFile();
+        } catch (IOException e) {
+            Log.e(TAG, "Couldn't canonicalize file to scan" + file, e);
+            return null;
+        }
+
         final String path = file.getAbsolutePath();
         final String volumeName = MediaStore.getVolumeName(file);
 

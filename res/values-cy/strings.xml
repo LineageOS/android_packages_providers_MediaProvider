@@ -23,7 +23,7 @@
     <string name="root_videos">Fideos</string>
     <string name="root_audio">Sain</string>
     <string name="root_documents">Dogfennau</string>
-    <string name="permission_required">Rhaid cael caniatâd i addasu neu ddileu\u2019r eitem hon.</string>
+    <string name="permission_required">Rhaid cael caniatâd i addasu neu dileu\u2019r eitem hon.</string>
     <string name="permission_required_action">Parhau</string>
     <string name="grant_dialog_button_allow">Caniatáu</string>
     <string name="grant_dialog_button_deny">Gwrthod</string>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2009 The Android Open Source Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="uid_label">Supuarts multimediâi</string>
+    <string name="storage_description">Archiviazion locâl</string>
+    <string name="app_label">Media Storage</string>
+    <string name="artist_label">Artist</string>
+    <string name="ringtone_default">Sunarie predefinide</string>
+    <string name="notification_sound_default">Sun di notifiche predefinît</string>
+    <string name="alarm_sound_default">Sun de svee predefinît</string>
+    <string name="root_images">Imagjins</string>
+    <string name="root_videos">Videos</string>
+    <string name="root_audio">Audio</string>
+    <string name="permission_required">E covente la autorizazion par modificâ o eliminâ chest element</string>
+    <string name="permission_required_action">Continue</string>
+    <string name="permission_audio">Permeti a <xliff:g id="app_name" example="Gmail">^1</xliff:g> di modificâ o eliminâ cheste musiche?</string>
+    <string name="permission_video">Permeti a <xliff:g id="app_name" example="Gmail">^1</xliff:g> di modificâ o eliminâ chest video?</string>
+    <string name="permission_images">Permeti a <xliff:g id="app_name" example="Gmail">^1</xliff:g> di modificâ o eliminâ cheste imagjin?</string>
+    <string name="grant_dialog_button_allow">Permet</string>
+    <string name="grant_dialog_button_deny">Dinee</string>
+    <string name="sound_name_awaken">Awaken</string>
+    <string name="sound_name_bounce">Bounce</string>
+    <string name="sound_name_drip">Drip</string>
+    <string name="sound_name_gallop">Gallop</string>
+    <string name="sound_name_nudge">Nudge</string>
+    <string name="sound_name_orbit">Orbit</string>
+    <string name="sound_name_rise">Rise</string>
+    <string name="sound_name_sway">Sway</string>
+    <string name="sound_name_wag">Wag</string>
+    <string name="add_ringtone_text">Zonte sunarie</string>
+    <string name="add_alarm_text">Zonte svee</string>
+    <string name="add_notification_text">Zonte notifiche</string>
+    <string name="delete_ringtone_text">Elimine</string>
+    <string name="unable_to_add_ringtone">Impussibil zontâ une sunarie personalizade</string>
+    <string name="unable_to_delete_ringtone">Impussibil eliminâ une sunarie personalizade</string>
+</resources>

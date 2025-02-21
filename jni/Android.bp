@@ -45,6 +45,7 @@ cc_library_shared {
         "liblog",
         "libfuse",
         "libandroid",
+        "libicu",
     ],
 
     static_libs: [

@@ -49,6 +49,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/uio.h>
+#include <unicode/utext.h>
 #include <unistd.h>
 
 #include <iostream>
@@ -122,6 +123,9 @@ const std::regex PATTERN_OWNED_PATH(
         std::regex_constants::icase);
 const std::regex PATTERN_BPF_BACKING_PATH("^/storage/[^/]+/[0-9]+/Android/(data|obb)$",
                                           std::regex_constants::icase);
+const std::regex PATTERN_PRIVATE_PATH(
+        "^/storage/[^/]+/(?:[0-9]+/)?Android/(?:data|obb)(/.*)?$",
+        std::regex_constants::icase);
 
 static constexpr char TRANSFORM_SYNTHETIC_DIR[] = "synthetic";
 static constexpr char TRANSFORM_TRANSCODE_DIR[] = "transcode";
@@ -554,10 +558,40 @@ static inline bool is_hidden_dir_path(const string& path, struct fuse* fuse) {
     return is_transforms_dir_path(path, fuse) || is_picker_transcoded_dir_path(path, fuse);
 }
 
+/*
+ * Check if the provided path is an Android/data or Android/obb folder under /storage/ that might
+ * be the subject of confusion in applying restrictions due to the presence of default ignorable
+ * codepoints.
+ *
+ * For Android SDK < 31, this will always return false, as the required libicu functions
+ * are not available.
+ */
+bool is_data_or_obb_path_with_default_ignorable_codepoints(const std::string_view& path) {
+    if (__builtin_available(android 31, *)) {
+        const std::string filtered_path =
+                mediaprovider::fuse::removeDefaultIgnorableCodepoints(path);
+        if (filtered_path.empty()) {
+            // Decoding failure.
+            return true;
+        }
+
+        // Check if the path doesn't match the filtered path (contains default ignorable
+        // codepoints), and if it's a private path (e.g. /storage/emulated/0/Android/data).
+        return path != filtered_path
+               && std::regex_match(filtered_path, PATTERN_PRIVATE_PATH);
+    }
+    return false;
+}
+
 static std::unique_ptr<mediaprovider::fuse::FileLookupResult> validate_node_path(
         const std::string& path, const std::string& name, fuse_req_t req, int* error_code,
         struct fuse_entry_param* e, const FuseOp op) {
     struct fuse* fuse = get_fuse(req);
+    if (is_data_or_obb_path_with_default_ignorable_codepoints(path)) {
+        LOG(WARNING) << "Failing validate_node_path due to default ignorable codepoints: " << path;
+        *error_code = EINVAL;
+        return nullptr;
+    }
     const struct fuse_ctx* ctx = fuse_req_ctx(req);
     memset(e, 0, sizeof(*e));
 

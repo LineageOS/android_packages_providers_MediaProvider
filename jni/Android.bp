@@ -47,6 +47,7 @@ cc_library_shared {
         "libfuse",
         "libandroid",
         "libstatssocket",
+        "libicu",
     ],
 
     static_libs: [

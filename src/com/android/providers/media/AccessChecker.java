@@ -24,6 +24,7 @@ import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
 import static android.provider.MediaStore.MediaColumns.OWNER_PACKAGE_NAME;
 
 import static com.android.providers.media.LocalUriMatcher.AUDIO_ALBUMART;
+import static com.android.providers.media.LocalUriMatcher.AUDIO_ALBUMART_FILE_ID;
 import static com.android.providers.media.LocalUriMatcher.AUDIO_ALBUMART_ID;
 import static com.android.providers.media.LocalUriMatcher.AUDIO_ALBUMS;
 import static com.android.providers.media.LocalUriMatcher.AUDIO_ALBUMS_ID;
@@ -97,6 +98,7 @@ public class AccessChecker {
             case AUDIO_ARTISTS_ID_ALBUMS:
             case AUDIO_ALBUMS_ID:
             case AUDIO_ALBUMS:
+            case AUDIO_ALBUMART_FILE_ID:
             case AUDIO_ALBUMART_ID:
             case AUDIO_ALBUMART:
             case AUDIO_GENRES_ID:
@@ -290,6 +292,7 @@ public class AccessChecker {
             case AUDIO_ARTISTS_ID_ALBUMS:
             case AUDIO_ALBUMS_ID:
             case AUDIO_ALBUMS:
+            case AUDIO_ALBUMART_FILE_ID:
             case AUDIO_ALBUMART_ID:
             case AUDIO_ALBUMART:
             case AUDIO_GENRES_ID:

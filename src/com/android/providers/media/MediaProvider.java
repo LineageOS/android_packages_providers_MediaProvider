@@ -3768,6 +3768,15 @@ public class MediaProvider extends ContentProvider {
             final boolean allowHidden = isCallingPackageAllowedHidden();
             final int table = matchUri(uri, allowHidden);
 
+            if (table == AUDIO_ALBUMART_FILE_ID) {
+                final String volumeName = getVolumeName(uri);
+                final long albumId = Long.parseLong(uri.getPathSegments().get(3));
+                final Uri targetUri = ContentUris
+                        .withAppendedId(Audio.Media.getContentUri(volumeName), albumId);
+                return getContext().checkUriPermission(targetUri, mCallingIdentity.get().pid,
+                        mCallingIdentity.get().uid, modeFlags);
+            }
+
             final DatabaseHelper helper;
             try {
                 helper = getDatabaseForUri(uri);

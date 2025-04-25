@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "72e0d204_6c83f287",
+        "filename": "jni/FuseUtils.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 11883
+      },
+      "writtenOn": "2025-04-25T15:43:41Z",
+      "side": 1,
+      "message": "```suggestion\n        UErrorCode error_code \u003d U_ZERO_ERROR;\n        UText ut \u003d UTEXT_INITIALIZER;\n        utext_openUTF8(\u0026ut, str.data(), (int64_t) str.length(), \u0026error_code);\n        if (U_FAILURE(error_code)) {\n            LOG(WARNING) \u003c\u003c \"Could not decode string as UTF-8: error \" \u003c\u003c error_code \u003c\u003c \": \" \u003c\u003c str;\n            return \"\";\n        }\n```",
+      "range": {
+        "startLine": 79,
+        "startChar": 0,
+        "endLine": 87,
+        "endChar": 9
+      },
+      "revId": "55ce09a4663d0696bd412defcc62458945a2f32f",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dd02510c_fb4e4d08",
+        "filename": "jni/FuseUtils.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 11883
+      },
+      "writtenOn": "2025-04-25T15:43:41Z",
+      "side": 1,
+      "message": "can\u0027t you move at the beginning via utext_setNativeIndex(\u0026ut, 0);\nand then simply loop using\n\nwhile ((c \u003d utext_next32(ut)) !\u003d U_SENTINEL) {\n\nseems a bit less error prone",
+      "range": {
+        "startLine": 92,
+        "startChar": 0,
+        "endLine": 94,
+        "endChar": 36
+      },
+      "revId": "55ce09a4663d0696bd412defcc62458945a2f32f",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1b43f7d6_da9ff95a",
+        "filename": "jni/FuseUtils.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 11883
+      },
+      "writtenOn": "2025-04-25T15:43:41Z",
+      "side": 1,
+      "message": "```suggestion\n                char utf8[U8_MAX_LENGTH];\n```",
+      "range": {
+        "startLine": 96,
+        "startChar": 26,
+        "endLine": 96,
+        "endChar": 27
+      },
+      "revId": "55ce09a4663d0696bd412defcc62458945a2f32f",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    }
+  ]
+}

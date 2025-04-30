@@ -1,6 +1,23 @@
 {
   "comments": [
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "688b25cb_6d7375ee",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 31604
+      },
+      "writtenOn": "2025-04-30T15:23:11Z",
+      "side": 1,
+      "message": "@luca.stefani.ge1@gmail.com These suggestions sound reasonable. Did you already try with them? How did you know to make them? I tried to model off existing patterns I should find, I think from the icu4c documentation, but yours look better.",
+      "revId": "55ce09a4663d0696bd412defcc62458945a2f32f",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "72e0d204_6c83f287",

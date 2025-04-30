@@ -66,6 +66,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "e210dc02_2d6b6b88",
+        "filename": "jni/FuseUtils.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 31604
+      },
+      "writtenOn": "2025-04-30T15:38:54Z",
+      "side": 1,
+      "message": "I think the pattern came from [here](https://github.com/unicode-org/icu/blob/b9b952c5e24b869ea4ff3b0df37aaee0387d302a/icu4c/source/common/unicode/utext.h#L56-L63):\n\n```\n    UChar32  c;\n    UText    *ut \u003d whatever();\n\n    for (c\u003dutext_next32From(ut, 0); c\u003e\u003d0; c\u003dutext_next32(ut)) {\n       // do whatever with the codepoint c here.\n    }\n```\n\nBut it does look like checking U_SENTINEL may be wise.",
+      "parentUuid": "dd02510c_fb4e4d08",
+      "range": {
+        "startLine": 92,
+        "startChar": 0,
+        "endLine": 94,
+        "endChar": 36
+      },
+      "revId": "55ce09a4663d0696bd412defcc62458945a2f32f",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "1b43f7d6_da9ff95a",
         "filename": "jni/FuseUtils.cpp",
         "patchSetId": 1

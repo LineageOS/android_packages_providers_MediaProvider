@@ -45,6 +45,8 @@ import static com.android.providers.media.util.Logging.TAG;
 import android.content.ClipDescription;
 import android.content.ContentValues;
 import android.content.Context;
+import android.icu.lang.UCharacter;
+import android.icu.lang.UProperty;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
@@ -76,6 +78,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -914,6 +917,42 @@ public class FileUtils {
     private static final Pattern PATTERN_OBB_OR_CHILD_RELATIVE_PATH = Pattern.compile(
             "(?i)^Android/obb(?:/.*)?$");
 
+    /**
+     * Normalizes the given path to NFD form and removes all default ignorable Unicode characters.
+     * These include characters (e.g., invisible zero-width spaces) that are ignored by the lower
+     * file system, but can be exploited by malicious apps to bypass path-based regex checks.
+     *
+     * @param path the input file path, possibly containing invisible Unicode characters
+     * @return a normalized path string with ignorable characters removed
+     */
+    public static String normalizeAndFilterDefaultIgnorableCodepoints(String path) {
+        // Nothing to normalize.
+        if (path == null || path.isEmpty()) {
+            return path;
+        }
+        path = Normalizer.normalize(path, Normalizer.Form.NFD);
+        final int[] codePoints = path.codePoints().toArray();
+        boolean hasIgnorableCodepoints = false;
+        for (int codePoint : codePoints) {
+            if (UCharacter.hasBinaryProperty(codePoint, UProperty.DEFAULT_IGNORABLE_CODE_POINT)) {
+                hasIgnorableCodepoints = true;
+                break;
+            }
+        }
+        // Input is already normalized.
+        if (!hasIgnorableCodepoints) {
+            return path;
+        }
+        // Remove default ignorable code points.
+        StringBuilder normalizedPath = new StringBuilder(codePoints.length);
+        for (int codePoint : codePoints) {
+            if (!UCharacter.hasBinaryProperty(codePoint, UProperty.DEFAULT_IGNORABLE_CODE_POINT)) {
+                normalizedPath.appendCodePoint(codePoint);
+            }
+        }
+        return normalizedPath.toString();
+    }
+
     @VisibleForTesting
     public static final String[] DEFAULT_FOLDER_NAMES = {
             Environment.DIRECTORY_MUSIC,
@@ -977,7 +1016,7 @@ public class FileUtils {
     public static @Nullable String extractRelativePath(@Nullable String data) {
         if (data == null) return null;
 
-        final String path;
+        String path;
         try {
             path = getCanonicalPath(data);
         } catch (IOException e) {

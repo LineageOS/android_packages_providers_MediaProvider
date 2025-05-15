@@ -68,13 +68,16 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import android.content.ContentValues;
+import android.os.Build;
 import android.os.Environment;
 import android.os.SystemProperties;
+import android.os.UserHandle;
 import android.provider.MediaStore;
 import android.provider.MediaStore.MediaColumns;
 import android.text.TextUtils;
 
 import androidx.test.InstrumentationRegistry;
+import androidx.test.filters.SdkSuppress;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.google.common.collect.Range;
@@ -82,6 +85,7 @@ import com.google.common.collect.Range;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -1236,5 +1240,25 @@ public class FileUtilsTest {
         assertThrows(IllegalArgumentException.class,
                 () -> FileUtils.computeDataFromValues(values, new File("/storage/emulated/0"),
                         false));
+    }
+
+    @Test
+    @SdkSuppress(minSdkVersion = Build.VERSION_CODES.S)
+    public void testNormalizeAndFilterDefaultIgnorableCodepoints() {
+        String pathWithZws = "/storage/emulated/0/An\u200Bdroid/data/com.google.example/files";
+        String pathWithZwsFiltered = "/storage/emulated/0/Android/data/com.google.example/files";
+        String emojiForNumber4 = "4\uFE0F⃣";
+        String emojiForNUmber4Filtered = "4⃣";
+
+        assertDefaultIgnorablesFiltered(pathWithZws, pathWithZwsFiltered);
+        assertDefaultIgnorablesFiltered(emojiForNumber4, emojiForNUmber4Filtered);
+    }
+
+    private static void assertDefaultIgnorablesFiltered(String pathWithIgnorables,
+            String pathWithIgnorablesRemoved) {
+        String normalizedAndFilteredPath =
+                FileUtils.normalizeAndFilterDefaultIgnorableCodepoints(pathWithIgnorables);
+
+        assertEquals(pathWithIgnorablesRemoved, normalizedAndFilteredPath);
     }
 }

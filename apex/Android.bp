@@ -35,6 +35,10 @@ apex {
         "libpdfclient",
     ],
     compile_multilib: "both",
+    licenses: [
+        "Android-Apache-2.0",
+        "opensourcerequest",
+    ],
 }
 
 apex_defaults {

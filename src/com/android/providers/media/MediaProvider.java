@@ -25,6 +25,7 @@ import static android.content.ContentResolver.QUERY_ARG_SQL_SELECTION;
 import static android.content.ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static android.database.Cursor.FIELD_TYPE_BLOB;
+import static android.provider.MediaStore.EXTRA_CALLING_PACKAGE_UID;
 import static android.provider.MediaStore.MATCH_DEFAULT;
 import static android.provider.MediaStore.MATCH_EXCLUDE;
 import static android.provider.MediaStore.MATCH_INCLUDE;
@@ -5892,6 +5893,7 @@ public class MediaProvider extends ContentProvider {
 
         final Context context = getContext();
         final Intent intent = new Intent(method, null, context, PermissionActivity.class);
+        extras.putInt(EXTRA_CALLING_PACKAGE_UID, getCallingUidOrSelf());
         intent.putExtras(extras);
         return PendingIntent.getActivity(context, PermissionActivity.REQUEST_CODE, intent,
                 FLAG_ONE_SHOT | FLAG_CANCEL_CURRENT | FLAG_IMMUTABLE);

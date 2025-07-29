@@ -304,6 +304,8 @@ public final class MediaStore {
     public static final String SET_STABLE_URIS_FLAG =
             "set_stable_uris_flag";
 
+    /** {@hide} */
+    public static final String EXTRA_CALLING_PACKAGE_UID = "calling_package_uid";
     /**
      * Only used for testing.
      * {@hide}

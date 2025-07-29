@@ -16,6 +16,9 @@
 
 package com.android.providers.media;
 
+import static android.os.UserHandle.getUserHandleForUid;
+import static android.provider.MediaStore.EXTRA_CALLING_PACKAGE_UID;
+
 import static com.android.providers.media.LocalUriMatcher.AUDIO_MEDIA_ID;
 import static com.android.providers.media.LocalUriMatcher.AUDIO_PLAYLISTS_ID;
 import static com.android.providers.media.LocalUriMatcher.FILES_ID;
@@ -57,6 +60,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.UserHandle;
 import android.provider.MediaStore;
 import android.provider.MediaStore.MediaColumns;
 import android.text.TextUtils;
@@ -203,14 +207,14 @@ public class PermissionActivity extends Activity {
                 shouldShowActionDialog = true;
             } else {
                 shouldShowActionDialog = shouldShowActionDialog(this, -1 /* pid */, appInfo.uid,
-                        getCallingPackage(), null /* attributionTag */, verb,
+                        appInfo.packageName, null /* attributionTag */, verb,
                         mShouldCheckMediaPermissions, mShouldCheckReadAudio, mShouldCheckReadImages,
                         mShouldCheckReadVideo, mShouldCheckReadAudioOrReadVideo,
                         isTargetSdkAtLeastT);
             }
         } else {
             shouldShowActionDialog = shouldShowActionDialog(this, -1 /* pid */, appInfo.uid,
-                    getCallingPackage(), null /* attributionTag */, verb);
+                    appInfo.packageName, null /* attributionTag */, verb);
         }
 
         if (!shouldShowActionDialog) {
@@ -304,12 +308,12 @@ public class PermissionActivity extends Activity {
             protected Void doInBackground(Void... params) {
                 Log.d(TAG, "User allowed grant for " + uris);
                 Metrics.logPermissionGranted(volumeName, appInfo.uid,
-                        getCallingPackage(), uris.size());
+                        appInfo.packageName, uris.size());
                 try {
                     switch (getIntent().getAction()) {
                         case MediaStore.CREATE_WRITE_REQUEST_CALL: {
                             for (Uri uri : uris) {
-                                grantUriPermission(getCallingPackage(), uri,
+                                grantUriPermission(appInfo.packageName, uri,
                                         Intent.FLAG_GRANT_READ_URI_PERMISSION
                                                 | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                             }
@@ -376,7 +380,7 @@ public class PermissionActivity extends Activity {
             @Override
             protected Void doInBackground(Void... params) {
                 Log.d(TAG, "User declined request for " + uris);
-                Metrics.logPermissionDenied(volumeName, appInfo.uid, getCallingPackage(),
+                Metrics.logPermissionDenied(volumeName, appInfo.uid, appInfo.packageName,
                         1);
                 return null;
             }
@@ -529,12 +533,22 @@ public class PermissionActivity extends Activity {
      * Resolve the application info of the calling app.
      */
     private @NonNull ApplicationInfo resolveCallingAppInfo() throws NameNotFoundException {
-        final String callingPackage = getCallingPackage();
+        String callingPackage = getCallingPackage();
+        UserHandle userHandle = getUser();
+
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            int callingUid = extras.getInt(EXTRA_CALLING_PACKAGE_UID);
+            callingPackage = Objects.requireNonNull(
+                    getPackageManager().getPackagesForUid(callingUid))[0];
+            userHandle = getUserHandleForUid(callingUid);
+        }
+
         if (TextUtils.isEmpty(callingPackage)) {
             throw new NameNotFoundException("Missing calling package");
         }
 
-        return getPackageManager().getApplicationInfo(callingPackage, 0);
+        return getPackageManager().getApplicationInfoAsUser(callingPackage, 0, userHandle);
     }
 
     private @NonNull String resolveVerb() {

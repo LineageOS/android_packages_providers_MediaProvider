@@ -3803,6 +3803,17 @@ public class MediaProvider extends ContentProvider {
                 }
             }
 
+            if (table == AUDIO_ALBUMART_ID) {
+                final String volumeName = getVolumeName(uri);
+                final long albumId = Long.parseLong(uri.getPathSegments().get(3));
+                final Uri targetUri = ContentUris
+                        .withAppendedId(Audio.Albums.getContentUri(volumeName), albumId);
+                if (checkUriPermission(targetUri, mCallingIdentity.get().pid,
+                        mCallingIdentity.get().uid, modeFlags) == PackageManager.PERMISSION_GRANTED) {
+                    return PackageManager.PERMISSION_GRANTED;
+                }
+            }
+
             // For the uri with id cases, if it isn't returned in above query section, the result
             // isn't as expected. Don't grant the permission.
             switch (table) {
@@ -3817,6 +3828,7 @@ public class MediaProvider extends ContentProvider {
                 case AUDIO_PLAYLISTS_ID_MEMBERS_ID:
                 case AUDIO_ARTISTS_ID:
                 case AUDIO_ALBUMS_ID:
+                case AUDIO_ALBUMART_ID:
                     return PackageManager.PERMISSION_DENIED;
                 default:
                     // continue below

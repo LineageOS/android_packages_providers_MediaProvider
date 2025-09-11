@@ -1392,7 +1392,7 @@ public class PickerDbFacadeTest {
         }
 
         // Assert invalid projection column
-        final String invalidColumn = "testInvalidColumn";
+        final String invalidColumn = "test invalid column";
         final String[] invalidProjection = new String[]{
                 PickerMediaColumns.DATE_TAKEN,
                 invalidColumn
@@ -1404,12 +1404,17 @@ public class PickerDbFacadeTest {
                     "Unexpected number of rows when asserting invalid projection column with "
                             + "cloud provider.")
                     .that(cr.getCount()).isEqualTo(1);
+            assertWithMessage("Unexpected number of columns in cursor")
+                    .that(cr.getColumnCount())
+                    .isEqualTo(2);
 
             cr.moveToFirst();
-            assertWithMessage(
-                    "Unexpected value of the invalidColumn with cloud provider.")
+            assertWithMessage( "Unexpected value of the invalidColumn with cloud provider.")
                     .that(cr.getLong(cr.getColumnIndex(invalidColumn)))
                     .isEqualTo(0);
+            assertWithMessage("Unexpected value of the invalidColumn with cloud provider.")
+                    .that(cr.getString(cr.getColumnIndexOrThrow(invalidColumn)))
+                    .isEqualTo(null);
             assertWithMessage(
                     "Unexpected value of PickerMediaColumns.DATE_TAKEN with cloud provider.")
                     .that(cr.getLong(cr.getColumnIndex(PickerMediaColumns.DATE_TAKEN)))

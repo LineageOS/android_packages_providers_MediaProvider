@@ -89,7 +89,7 @@ fun SelectionBar(modifier: Modifier = Modifier, params: LocationParams) {
 
     // For ACTION_USER_SELECT_IMAGES_FOR_APP selection bar should always be visible to allow users
     // the option to exit with zero selection i.e. revoking all grants.
-    val visible =
+    val showSelectionBar =
         currentSelection.isNotEmpty() ||
             MediaStore.ACTION_USER_SELECT_IMAGES_FOR_APP.equals(
                 LocalPhotopickerConfiguration.current.action
@@ -104,7 +104,7 @@ fun SelectionBar(modifier: Modifier = Modifier, params: LocationParams) {
     AnimatedVisibility(
         // Pass through the modifier that is received for positioning offsets.
         modifier = modifier,
-        visible = visible,
+        visible = showSelectionBar,
         enter =
             slideInVertically(animationSpec = emphasizedDecelerate, initialOffsetY = { it * 2 }),
         exit = slideOutVertically(animationSpec = emphasizedAccelerate, targetOffsetY = { it * 2 }),

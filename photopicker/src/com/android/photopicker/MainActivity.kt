@@ -203,17 +203,6 @@ class MainActivity : Hilt_MainActivity() {
         photopickerEventLogger = PhotopickerEventLogger(dataService)
         photopickerEventLogger.start(lifecycleScope, background, events.get())
 
-        /*
-         * In single select sessions, the activity needs to end after a media object is selected,
-         * so register a listener to the selection so the activity can handle calling
-         * [onMediaSelectionConfirmed] itself.
-         *
-         * For multi-select, the activity has to wait for onMediaSelectionConfirmed to be called
-         * by the selection bar click handler, or for the [Event.MediaSelectionConfirmed], in
-         * the event the user ends the session from the [PreviewFeature]
-         */
-        listenForSelectionIfSingleSelect()
-
         setContent {
             val photopickerConfiguration by
                 configurationManager.configuration.collectAsStateWithLifecycle()
@@ -288,25 +277,6 @@ class MainActivity : Hilt_MainActivity() {
             photopickerConfiguration = configurationManager.configuration.value,
             pickerIntentAction = intentAction,
         )
-    }
-
-    /**
-     * A collector that starts when Photopicker is running in single-select mode. This collector
-     * will trigger [onMediaSelectionConfirmed] when the first (and only) item is selected.
-     */
-    private fun listenForSelectionIfSingleSelect() {
-
-        // Only set up a collector if the selection limit is 1, otherwise the [SelectionBarFeature]
-        // will be enabled for the user to confirm the selection.
-        if (configurationManager.configuration.value.selectionLimit == 1) {
-            lifecycleScope.launch {
-                selection.get().flow.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).collect {
-                    if (it.size == 1) {
-                        launch { onMediaSelectionConfirmed() }
-                    }
-                }
-            }
-        }
     }
 
     /** Setup an [Event] listener for the [MainActivity] to monitor the event bus. */

@@ -275,12 +275,19 @@ fun PreviewSelection(
                     } else {
                         SelectionButton(currentSelection = currentSelection)
                     }
+                    val scope = rememberCoroutineScope()
+                    val events = LocalEvents.current
 
                     FilledTonalButton(
                         onClick = {
                             if (config.selectionLimit == 1) {
                                 val media = selection.get(state.currentPage)
                                 media?.let { viewModel.toggleInSelection(it, {}) }
+                                scope.launch {
+                                    events.dispatch(
+                                        Event.MediaSelectionConfirmed(FeatureToken.PREVIEW.token)
+                                    )
+                                }
                             } else {
                                 navController.popBackStack()
                             }

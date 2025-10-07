@@ -286,6 +286,7 @@ class MainActivity : Hilt_MainActivity() {
                 ->
                 when (event) {
                     is Event.BrowseToDocumentsUi -> referToDocumentsUi()
+                    is Event.MediaSelectionConfirmed -> launch { onMediaSelectionConfirmed() }
                     else -> {}
                 }
             }

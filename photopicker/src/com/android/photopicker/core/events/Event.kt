@@ -52,6 +52,12 @@ interface Event {
     data class BrowseToDocumentsUi(override val dispatcherToken: String) : Event
 
     /**
+     * Fired when the user confirms their media selection from the preview screen. This is used in
+     * single-select mode to finish the activity.
+     */
+    data class MediaSelectionConfirmed(override val dispatcherToken: String) : Event
+
+    /**
      * For showing a message to the user in a snackbar.
      *
      * @see [SnackbarFeature] for snackbar implementation details.

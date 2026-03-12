@@ -773,6 +773,8 @@ public class MediaProvider extends ContentProvider {
                         oldRow.getSpecialFormat(), newRow.getSpecialFormat())) {
                     mPickerSyncController.notifyMediaEvent();
                 }
+
+                revokeUriPermissionGrantsOnPathChange(helper, oldRow, newRow);
             });
 
             if (newRow.getMediaType() != oldRow.getMediaType()) {
@@ -828,6 +830,8 @@ public class MediaProvider extends ContentProvider {
                         deletedRow.getMediaType())) {
                     mPickerSyncController.notifyMediaEvent();
                 }
+
+                revokeUriPermissionGrantsOnDocumentsProvider(deletedRow);
             });
         }
     };
@@ -850,6 +854,64 @@ public class MediaProvider extends ContentProvider {
         } else {
             Log.v(TAG, String.format(Locale.ROOT, "Inserted id:%d less than next row id backup:%d.",
                     id, nextRowIdBackupOptional.get()));
+        }
+    }
+
+    private void revokeUriPermissionGrantsOnPathChange(@NonNull DatabaseHelper helper,
+            @NonNull FileRow oldRow, @NonNull FileRow newRow) {
+        final String oldPath = oldRow.getPath();
+        final String newPath = getPathForFileId(helper, newRow.getId());
+        if (oldPath != null && newPath != null && !oldPath.equalsIgnoreCase(newPath)) {
+            revokeUriPermissionGrantsOnDocumentsProvider(oldRow);
+        }
+    }
+
+    private String getPathForFileId(@NonNull DatabaseHelper helper, long fileId) {
+        return helper.runWithoutTransaction((db) -> {
+            try (Cursor c = db.query(Files.TABLE, new String[]{FileColumns.DATA},
+                    FileColumns._ID + "=?", new String[]{String.valueOf(fileId)},
+                    null, null, null)) {
+                if (c.moveToFirst()) {
+                    return c.getString(0);
+                }
+            }
+            return null;
+        });
+    }
+
+    private void revokeUriPermissionGrantsOnDocumentsProvider(FileRow oldRow) {
+        // A file is valid only if it's not trashed.
+        if (oldRow.isTrashed()) {
+            return;
+        }
+
+        String pathToBeRevoked = oldRow.getPath();
+        final boolean isDownload = FileUtils.isDownload(pathToBeRevoked);
+        final Bundle extras = new Bundle();
+        extras.putString(MediaStore.EXTRA_OLD_PATH, pathToBeRevoked);
+
+        // Notify ExternalStorageProvider to revoke path-based grants
+        try {
+            getContext().getContentResolver().call(
+                    getExternalStorageProviderAuthority(),
+                    MediaStore.REVOKE_URI_PERMISSION_CALL,
+                    /* arg */ null, extras);
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to revoke permissions for " + pathToBeRevoked
+                    + " from ExternalStorageProvider", e);
+        }
+
+        // Notify DownloadStorageProvider to revoke path-based grants
+        if (isDownload) {
+            try {
+                getContext().getContentResolver().call(
+                        getDownloadsProviderAuthority(),
+                        MediaStore.REVOKE_URI_PERMISSION_CALL,
+                        /* arg */ null, extras);
+            } catch (Exception e) {
+                Log.w(TAG, "Failed to revoke permissions for " + pathToBeRevoked
+                        + " from DownloadStorageProvider", e);
+            }
         }
     }
 
@@ -9701,7 +9763,7 @@ public class MediaProvider extends ContentProvider {
 
     @RequiresApi(Build.VERSION_CODES.S)
     private String getDownloadsProviderAuthorityFromDocumentsContract() {
-        return DocumentsContract.EXTERNAL_STORAGE_PROVIDER_AUTHORITY;
+        return DocumentsContract.DOWNLOADS_PROVIDER_AUTHORITY;
     }
 
     private boolean isCallingIdentityDownloadProvider() {

@@ -40,7 +40,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -75,7 +77,14 @@ public class XmpInterface {
 
     private XmpInterface(@NonNull byte[] rawXmp, @NonNull Set<String> redactedExifTags,
             @NonNull long[] xmpOffsets) throws IOException {
-        mRedactedXmp = rawXmp;
+        process(rawXmp, redactedExifTags, xmpOffsets);
+    }
+
+    private void process(@NonNull byte[] rawXmp, @NonNull Set<String> redactedExifTags,
+            @NonNull long[] xmpOffsets) throws IOException {
+        if (mRedactedXmp == null) {
+            mRedactedXmp = rawXmp;
+        }
 
         final ByteCountingInputStream in = new ByteCountingInputStream(
                 new ByteArrayInputStream(rawXmp));
@@ -97,6 +106,35 @@ public class XmpInterface {
 
                 final String ns = parser.getNamespace();
                 final String name = parser.getName();
+
+                boolean hasSensitiveAttribute = false;
+                for (int i = 0; i < parser.getAttributeCount(); i++) {
+                    String attrNs = parser.getAttributeNamespace(i);
+                    String attrName = parser.getAttributeName(i);
+                    if (NS_EXIF.equals(attrNs) && redactedExifTags.contains(attrName)) {
+                        hasSensitiveAttribute = true;
+                        break;
+                    }
+                }
+
+                if (hasSensitiveAttribute) {
+                    long start = offset;
+                    int depth = 1;
+                    while (depth > 0) {
+                        type = parser.next();
+                        if (type == START_TAG) depth++;
+                        else if (type == END_TAG) depth--;
+                    }
+                    offset = in.getOffset(parser);
+
+                    // Redact range within entire file
+                    mRedactedRanges.add(xmpOffset + start);
+                    mRedactedRanges.add(xmpOffset + offset);
+
+                    // Redact range within current XMP box
+                    Arrays.fill(rawXmp, (int) start, (int) offset, (byte) ' ');
+                    continue;
+                }
 
                 if (NS_RDF.equals(ns) && NAME_DESCRIPTION.equals(name)) {
                     mFormat = maybeOverride(mFormat,
@@ -126,8 +164,8 @@ public class XmpInterface {
                     mRedactedRanges.add(xmpOffset + start);
                     mRedactedRanges.add(xmpOffset + offset);
 
-                    // Redact range within local copy
-                    Arrays.fill(mRedactedXmp, (int) start, (int) offset, (byte) ' ');
+                    // Redact range within current XMP box
+                    Arrays.fill(rawXmp, (int) start, (int) offset, (byte) ' ');
                 }
             }
         } catch (XmlPullParserException e) {
@@ -174,22 +212,28 @@ public class XmpInterface {
 
     public static @NonNull XmpInterface fromContainer(@NonNull IsoInterface iso,
             @NonNull Set<String> redactedExifTags) throws IOException {
-        byte[] buf = null;
-        long[] xmpOffsets = new long[0];
-        if (buf == null) {
-            UUID uuid = UUID.fromString("be7acfcb-97a9-42e8-9c71-999491e3afac");
-            buf = iso.getBoxBytes(uuid);
-            xmpOffsets = iso.getBoxRanges(uuid);
+        List<byte[]> bufs = new ArrayList<>();
+        List<long[]> xmpOffsetsList = new ArrayList<>();
+
+        UUID uuid = UUID.fromString("be7acfcb-97a9-42e8-9c71-999491e3afac");
+        bufs.addAll(iso.getBoxBytesList(uuid));
+        xmpOffsetsList.addAll(iso.getBoxRangesList(uuid));
+
+        bufs.addAll(iso.getBoxBytesList(IsoInterface.BOX_XMP));
+        xmpOffsetsList.addAll(iso.getBoxRangesList(IsoInterface.BOX_XMP));
+
+        byte[] firstBuf = new byte[0];
+        long[] firstOffsets = new long[0];
+        if (!bufs.isEmpty()) {
+            firstBuf = bufs.get(0);
+            firstOffsets = xmpOffsetsList.get(0);
         }
-        if (buf == null) {
-            buf = iso.getBoxBytes(IsoInterface.BOX_XMP);
-            xmpOffsets = iso.getBoxRanges(IsoInterface.BOX_XMP);
+
+        XmpInterface res = new XmpInterface(firstBuf, redactedExifTags, firstOffsets);
+        for (int i = 1; i < bufs.size(); i++) {
+            res.process(bufs.get(i), redactedExifTags, xmpOffsetsList.get(i));
         }
-        if (buf == null) {
-            buf = new byte[0];
-            xmpOffsets = new long[0];
-        }
-        return new XmpInterface(buf, redactedExifTags, xmpOffsets);
+        return res;
     }
 
     public static @NonNull XmpInterface fromSidecar(@NonNull File file)

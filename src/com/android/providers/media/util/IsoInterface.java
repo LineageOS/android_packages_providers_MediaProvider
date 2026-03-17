@@ -311,6 +311,32 @@ public class IsoInterface {
     }
 
     /**
+     * Return a list of content ranges of all boxes of requested type.
+     */
+    public @NonNull List<long[]> getBoxRangesList(int type) {
+        List<long[]> res = new ArrayList<>();
+        for (Box box : mFlattened) {
+            if (box.type == type) {
+                res.add(new long[] { box.range[0] + box.headerSize, box.range[0] + box.range[1] });
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Return a list of content ranges of all boxes of requested UUID.
+     */
+    public @NonNull List<long[]> getBoxRangesList(@NonNull UUID uuid) {
+        List<long[]> res = new ArrayList<>();
+        for (Box box : mFlattened) {
+            if (box.type == BOX_UUID && Objects.equals(box.uuid, uuid)) {
+                res.add(new long[] { box.range[0] + box.headerSize, box.range[0] + box.range[1] });
+            }
+        }
+        return res;
+    }
+
+    /**
      * Return contents of the first box of requested type.
      */
     public @Nullable byte[] getBoxBytes(int type) {
@@ -323,6 +349,19 @@ public class IsoInterface {
     }
 
     /**
+     * Return contents of all boxes of requested type.
+     */
+    public @NonNull List<byte[]> getBoxBytesList(int type) {
+        List<byte[]> res = new ArrayList<>();
+        for (Box box : mFlattened) {
+            if (box.type == type) {
+                res.add(box.data);
+            }
+        }
+        return res;
+    }
+
+    /**
      * Return contents of the first UUID box of requested type.
      */
     public @Nullable byte[] getBoxBytes(@NonNull UUID uuid) {
@@ -332,6 +371,19 @@ public class IsoInterface {
             }
         }
         return null;
+    }
+
+    /**
+     * Return contents of all UUID boxes of requested type.
+     */
+    public @NonNull List<byte[]> getBoxBytesList(@NonNull UUID uuid) {
+        List<byte[]> res = new ArrayList<>();
+        for (Box box : mFlattened) {
+            if (box.type == BOX_UUID && Objects.equals(box.uuid, uuid)) {
+                res.add(box.data);
+            }
+        }
+        return res;
     }
 
     /**

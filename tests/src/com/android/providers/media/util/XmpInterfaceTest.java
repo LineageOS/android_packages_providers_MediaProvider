@@ -17,6 +17,7 @@
 package com.android.providers.media.util;
 
 import static org.junit.Assert.assertArrayEquals;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -220,6 +221,17 @@ public class XmpInterfaceTest {
 
         assertNotNull(stream.toString());
         stream.close();
+    }
+
+    @Test
+    public void testRedactXmp_RemovesExifGpsAttributes() throws Exception {
+        final File file = stageFile(R.raw.gps_test_xmp);
+        final IsoInterface mp4 = IsoInterface.fromFile(file);
+
+        XmpInterface xmpInterface = XmpInterface.fromContainer(mp4);
+        final String redactedXmp = new String(xmpInterface.getRedactedXmp());
+        assertThat(redactedXmp).doesNotContain("exif:GPSLatitude");
+        assertThat(redactedXmp).doesNotContain("exif:GPSLongitude");
     }
 
     private static File stageFile(int resId) throws Exception {

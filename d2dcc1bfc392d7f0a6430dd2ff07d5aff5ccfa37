@@ -1,5 +1,23 @@
 {
-  "comments": [],
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3e681dbe_1fc1713d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 18796
+      },
+      "writtenOn": "2026-04-21T07:41:27Z",
+      "side": 1,
+      "message": "@mse1969@posteo.de do we need to revert it for a12 as well?",
+      "revId": "d2dcc1bfc392d7f0a6430dd2ff07d5aff5ccfa37",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    }
+  ],
   "submitRequirementResults": [
     {
       "submitRequirement": {

@@ -60,6 +60,9 @@ public class IsoInterface {
     public static final int BOX_GPS = 0x67707320;
     public static final int BOX_GPS0 = 0x67707330;
 
+    private static final int MAX_XMP_SIZE_BYTES = 1024 * 1024;
+    public static final UUID XMP_UUID = UUID.fromString("be7acfcb-97a9-42e8-9c71-999491e3afac");
+
     /**
      * Test if given box type is a well-known parent box type.
      */
@@ -173,31 +176,29 @@ public class IsoInterface {
                 Log.v(TAG, prefix + "  UUID " + box.uuid);
             }
 
-            if (len > Integer.MAX_VALUE) {
-                Log.w(TAG, "Skipping abnormally large uuid box");
-                return null;
+            if (XMP_UUID.equals(box.uuid)) {
+                if (len - box.headerSize > MAX_XMP_SIZE_BYTES) {
+                    Log.w(TAG, "Skipping abnormally large uuid box");
+                } else {
+                    try {
+                        box.data = new byte[(int) (len - box.headerSize)];
+                        Os.read(fd, box.data, 0, box.data.length);
+                    } catch (OutOfMemoryError e) {
+                        Log.w(TAG, "Couldn't read large uuid box", e);
+                    }
+                }
             }
-
-            try {
-                box.data = new byte[(int) (len - box.headerSize)];
-            } catch (OutOfMemoryError e) {
-                Log.w(TAG, "Couldn't read large uuid box", e);
-                return null;
-            }
-            Os.read(fd, box.data, 0, box.data.length);
         } else if (type == BOX_XMP) {
-            if (len > Integer.MAX_VALUE) {
+            if (len - box.headerSize > MAX_XMP_SIZE_BYTES) {
                 Log.w(TAG, "Skipping abnormally large xmp box");
-                return null;
+            } else {
+                try {
+                    box.data = new byte[(int) (len - box.headerSize)];
+                    Os.read(fd, box.data, 0, box.data.length);
+                } catch (OutOfMemoryError e) {
+                    Log.w(TAG, "Couldn't read large xmp box", e);
+                }
             }
-
-            try {
-                box.data = new byte[(int) (len - box.headerSize)];
-            } catch (OutOfMemoryError e) {
-                Log.w(TAG, "Couldn't read large xmp box", e);
-                return null;
-            }
-            Os.read(fd, box.data, 0, box.data.length);
         } else if (type == BOX_META && len != headerSize) {
             // The format of this differs in ISO and QT encoding:
             // (iso) [1 byte version + 3 bytes flags][4 byte size of next atom]

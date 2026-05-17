@@ -75,17 +75,30 @@ public class XmpInterface {
     private String mInstanceId;
     private String mOriginalDocumentId;
 
-    private XmpInterface(@NonNull byte[] rawXmp, @NonNull Set<String> redactedExifTags,
-            @NonNull long[] xmpOffsets) throws IOException {
+    private XmpInterface(@Nullable byte[] rawXmp, @NonNull Set<String> redactedExifTags,
+                         @NonNull long[] xmpOffsets) throws IOException {
         process(rawXmp, redactedExifTags, xmpOffsets);
+        if (mRedactedXmp == null) {
+            mRedactedXmp = new byte[0];
+        }
     }
 
-    private void process(@NonNull byte[] rawXmp, @NonNull Set<String> redactedExifTags,
-            @NonNull long[] xmpOffsets) throws IOException {
-        if (mRedactedXmp == null) {
-            mRedactedXmp = rawXmp;
+    private void process(@Nullable byte[] rawXmp, @NonNull Set<String> redactedExifTags,
+                         @NonNull long[] xmpOffsets) throws IOException {
+        if (rawXmp == null) {
+            if (xmpOffsets.length >= 2) {
+            // If rawXmp is null, it means the XMP box was empty or large(>1MiB).
+            // We still need to add entire offset range for redaction if offset is non-zero,
+            // for large-xmp box.
+                mRedactedRanges.add(xmpOffsets[0]);
+                mRedactedRanges.add(xmpOffsets[1]);
+            }
+            return;
         }
 
+        if (mRedactedXmp == null || mRedactedXmp.length == 0) {
+            mRedactedXmp = rawXmp;
+        }
         final ByteCountingInputStream in = new ByteCountingInputStream(
                 new ByteArrayInputStream(rawXmp));
         final long xmpOffset = xmpOffsets.length == 0 ? 0 : xmpOffsets[0];
@@ -197,7 +210,13 @@ public class XmpInterface {
         long[] xmpOffsets;
         if (exif.hasAttribute(ExifInterface.TAG_XMP)) {
             buf = exif.getAttributeBytes(ExifInterface.TAG_XMP);
-            xmpOffsets = exif.getAttributeRange(ExifInterface.TAG_XMP);
+            long[] range = exif.getAttributeRange(ExifInterface.TAG_XMP);
+            if (range != null && range.length >= 2) {
+                // Update offsets from [start, length] to [start, end]
+                xmpOffsets = new long[] { range[0], range[0] + range[1] };
+            } else {
+                xmpOffsets = new long[0];
+            }
         } else {
             buf = new byte[0];
             xmpOffsets = new long[0];

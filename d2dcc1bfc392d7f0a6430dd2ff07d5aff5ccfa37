@@ -52,6 +52,24 @@
       "parentUuid": "eabdd774_19ce4b78",
       "revId": "d2dcc1bfc392d7f0a6430dd2ff07d5aff5ccfa37",
       "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9c310a7f_d38efe45",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 17656
+      },
+      "writtenOn": "2026-06-09T18:45:42Z",
+      "side": 1,
+      "message": "OK, then please push the two reverts, as suggested by me already, also to the lineage-19.1 branch and I\u0027ll merge them",
+      "parentUuid": "bfe5a17f_4e064f68",
+      "revId": "d2dcc1bfc392d7f0a6430dd2ff07d5aff5ccfa37",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
     }
   ],
   "submitRequirementResults": [

@@ -4069,6 +4069,9 @@ public class MediaProvider extends ContentProvider {
 
         Cursor c;
 
+        qb.enforceStrictColumns(projection);
+        projection = maybeReplaceNullProjection(projection, qb);
+
         if (Flags.enableOemMetadata()
                 && hasColumnsToFilterInProjection(qb, projection, List.of(OEM_METADATA))
                 && !mCallingIdentity.get().checkCallingPermissionOemMetadata()) {
@@ -4177,28 +4180,25 @@ public class MediaProvider extends ContentProvider {
     }
 
     /**
-     * Constructs the following projection string:
+     * Constructs the following substitution string:
      *     CASE WHEN owner_package_name IN ("queryablePackageA","queryablePackageB")
-     *     THEN owner_package_name ELSE NULL END AS owner_package_name
+     *     THEN owner_package_name ELSE NULL END
      */
-    private String constructOwnerPackageNameProjection(Set<String> queryablePackages) {
+    private String constructOwnerPackageNameSubstitution(Set<String> queryablePackages) {
         final String packageNames = String.join(",", queryablePackages
                 .stream()
                 .map(name -> ("'" + name + "'"))
                 .collect(Collectors.toList()));
 
-        final StringBuilder newProjection = new StringBuilder()
+        return new StringBuilder()
                 .append("CASE WHEN ")
                 .append(OWNER_PACKAGE_NAME)
                 .append(" IN (")
                 .append(packageNames)
                 .append(") THEN ")
                 .append(OWNER_PACKAGE_NAME)
-                .append(" ELSE NULL END AS ")
-                .append(OWNER_PACKAGE_NAME);
-
-        Log.d(TAG, "Constructed owner_package_name substitution: " + newProjection);
-        return newProjection.toString();
+                .append(" ELSE NULL END")
+                .toString();
     }
 
     private String[] getAllOwnerPackageNames(SQLiteQueryBuilder qb, DatabaseHelper helper,
@@ -4218,6 +4218,38 @@ public class MediaProvider extends ContentProvider {
         return ownerPackageNamesArr;
     }
 
+    private static boolean containsWord(String projElement, String columnToFilter) {
+        if (projElement == null || columnToFilter == null) return false;
+
+        // Fast path: avoid expensive Pattern/Matcher allocations if there is no substring match.
+        if (!projElement.toLowerCase(Locale.ROOT)
+                .contains(columnToFilter.toLowerCase(Locale.ROOT))) {
+            return false;
+        }
+
+        Pattern pattern = FILTER_COLUMN_PATTERNS.get(columnToFilter);
+        if (pattern == null) {
+            pattern = Pattern.compile("\\b" + Pattern.quote(columnToFilter) + "\\b",
+                    Pattern.CASE_INSENSITIVE);
+        }
+        return pattern.matcher(projElement).find();
+    }
+
+    private String[] splitProjection(String projElement) {
+        String cleaned = projElement.trim();
+        Matcher matcher = ALIAS_PATTERN.matcher(cleaned);
+
+        String[] result;
+        if (matcher.find()) {
+            String expr = cleaned.substring(0, matcher.start()).trim();
+            String alias = matcher.group(1).trim();
+            result = new String[]{expr, alias};
+        } else {
+            result = new String[]{cleaned, null};
+        }
+        return result;
+    }
+
     private String[] prepareSubstitution(SQLiteQueryBuilder qb,
             String[] projection, Set<String> queryablePackages) {
         projection = maybeReplaceNullProjection(projection, qb);
@@ -4225,11 +4257,51 @@ public class MediaProvider extends ContentProvider {
             qb.setProjectionAllowlist(new ArrayList<>());
         }
         final String[] newProjection = new String[projection.length];
+        String substitution = constructOwnerPackageNameSubstitution(queryablePackages);
+
         for (int i = 0; i < projection.length; i++) {
-            if (!OWNER_PACKAGE_NAME.equalsIgnoreCase(projection[i])) {
-                newProjection[i] = projection[i];
+            String projElement = projection[i];
+            if (projElement == null) {
+                newProjection[i] = null;
+                continue;
+            }
+
+            // Extract DISTINCT or ALL prefix
+            String prefix = "";
+            String cleaned = projElement.trim();
+            String upper = cleaned.toUpperCase(Locale.ROOT);
+            if (upper.startsWith("DISTINCT ")) {
+                prefix = "DISTINCT ";
+                cleaned = cleaned.substring("DISTINCT ".length()).trim();
+            } else if (upper.startsWith("ALL ")) {
+                prefix = "ALL ";
+                cleaned = cleaned.substring("ALL ".length()).trim();
+            }
+
+            String[] split = splitProjection(cleaned);
+            String expr = split[0];
+            String alias = split[1];
+
+            if (!containsWord(expr, OWNER_PACKAGE_NAME)) {
+                newProjection[i] = projElement;
             } else {
-                newProjection[i] = constructOwnerPackageNameProjection(queryablePackages);
+                String rewrittenExpr = FILTER_COLUMN_PATTERNS.get(OWNER_PACKAGE_NAME)
+                        .matcher(expr).replaceAll(substitution);
+
+                String targetProjection;
+                if (alias != null) {
+                    targetProjection = rewrittenExpr + " AS " + alias;
+                } else {
+                    if (expr.equalsIgnoreCase(OWNER_PACKAGE_NAME)) {
+                        targetProjection = rewrittenExpr + " AS " + OWNER_PACKAGE_NAME;
+                    } else {
+                        // Escape double quotes by doubling them
+                        String escapedExpr = expr.replace("\"", "\"\"");
+                        targetProjection = rewrittenExpr + " AS \"" + escapedExpr + "\"";
+                    }
+                }
+                newProjection[i] = prefix + targetProjection;
+
                 // Allow constructed owner_package_name column in projection
                 final String escapedColumnCase = Pattern.quote(newProjection[i]);
                 qb.getProjectionAllowlist().add(Pattern.compile(escapedColumnCase));
@@ -4245,6 +4317,28 @@ public class MediaProvider extends ContentProvider {
             projection = qb.getAllColumnsFromProjectionMap();
             // Allow all columns from the projection map
             qb.setStrictColumns(false);
+            return projection;
+        }
+
+        // Only expand explicit wildcards ("*") for legacy callers (targetSdkVersion < Q)
+        if (getCallingPackageTargetSdkVersion() < Build.VERSION_CODES.Q) {
+            boolean hasWildcard = false;
+            String[] allColumns = qb.getAllColumnsFromProjectionMap();
+            ArrayList<String> expanded = new ArrayList<>();
+            for (String element : projection) {
+                if (element != null && "*".equals(element.trim())) {
+                    if (allColumns != null) {
+                        expanded.addAll(Arrays.asList(allColumns));
+                    }
+                    hasWildcard = true;
+                } else {
+                    expanded.add(element);
+                }
+            }
+            if (hasWildcard) {
+                projection = expanded.toArray(new String[0]);
+                qb.setStrictColumns(false);
+            }
         }
         return projection;
     }
@@ -4309,9 +4403,17 @@ public class MediaProvider extends ContentProvider {
     }
 
     private boolean projectionNeedsOwnerPackageFiltering(String[] proj, SQLiteQueryBuilder qb) {
-        return (proj != null && Arrays.asList(proj).contains(MediaColumns.OWNER_PACKAGE_NAME))
-                || (proj == null && qb.getProjectionMap() != null
-                    && qb.getProjectionMap().containsKey(OWNER_PACKAGE_NAME));
+        if (proj == null) {
+            return qb.getProjectionMap() != null
+                    && qb.getProjectionMap().containsKey(OWNER_PACKAGE_NAME);
+        }
+        for (String projElement : proj) {
+            String[] split = splitProjection(projElement);
+            if (containsWord(split[0], OWNER_PACKAGE_NAME)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean shouldFilterOwnerPackageNameFlag() {
@@ -12052,6 +12154,24 @@ public class MediaProvider extends ContentProvider {
         sPlacementColumns.add(MediaStore.MediaColumns.IS_TRASHED);
         sPlacementColumns.add(MediaStore.MediaColumns.DATE_EXPIRES);
     }
+
+    private static final Map<String, Pattern> FILTER_COLUMN_PATTERNS = Map.of(
+            OWNER_PACKAGE_NAME, Pattern.compile("\\b" + Pattern.quote(OWNER_PACKAGE_NAME) + "\\b",
+                    Pattern.CASE_INSENSITIVE)
+    );
+
+    /**
+     * Matches SQL alias clauses at the end of a projection column expression.
+     * Components:
+     * <ul>
+     *   <li>{@code " "}: Matches a single space separator preceding the alias.</li>
+     *   <li>{@code (?:as )?}: Optionally matches the "as" keyword.</li>
+     *   <li>{@code ([_a-z0-9]+)$}: Captures the alphanumeric/underscore alias name at the end of
+     *   the string.</li>
+     * </ul>
+     */
+    private static final Pattern ALIAS_PATTERN = Pattern.compile(
+            " (?:as )?([_a-z0-9]+)$", Pattern.CASE_INSENSITIVE);
 
     /**
      * List of abusive custom columns that we're willing to allow via

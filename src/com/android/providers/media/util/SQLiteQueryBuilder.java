@@ -829,7 +829,7 @@ public class SQLiteQueryBuilder {
     }
 
     @VisibleForTesting
-    void enforceStrictGrammar(@Nullable String selection, @Nullable String groupBy,
+    public void enforceStrictGrammar(@Nullable String selection, @Nullable String groupBy,
             @Nullable String having, @Nullable String sortOrder, @Nullable String limit) {
         SQLiteTokenizer.tokenize(selection, SQLiteTokenizer.OPTION_NONE,
                 this::enforceStrictToken);

@@ -21,6 +21,7 @@ import static android.content.ContentResolver.QUERY_ARG_SQL_HAVING;
 import static android.provider.MediaStore.getGeneration;
 
 import static com.android.providers.media.DatabaseHelper.EXTERNAL_DATABASE_NAME;
+import static com.android.providers.media.flags.Flags.FLAG_ENABLE_OEM_METADATA;
 import static com.android.providers.media.scan.MediaScannerTest.stage;
 import static com.android.providers.media.util.FileUtils.extractDisplayName;
 import static com.android.providers.media.util.FileUtils.extractRelativePath;
@@ -37,6 +38,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
@@ -2777,6 +2779,172 @@ public class MediaProviderTest {
 
             assertEquals("image/dng", actualType);
         } finally {
+            file.delete();
+        }
+    }
+
+    @Test
+    @RequiresFlagsEnabled(FLAG_ENABLE_OEM_METADATA)
+    public void testQueryingOemMetadataInSelectionShouldReturnEmptyCursor() throws Exception {
+        String[] projection = new String[] {
+                ImageColumns._ID,
+                ImageColumns.DISPLAY_NAME
+        };
+
+        String selection = MediaColumns.OEM_METADATA + " = ?";
+        String[] selectionArgs = new String[]{"some_val"};
+
+        final File downloads = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOWNLOADS);
+        File file = stage(R.raw.lg_g4_iso_800_jpg,
+                new File(downloads, "test" + System.nanoTime() + ".jpg"));
+        Uri testFileUri = MediaStore.scanFile(sContentResolver, file);
+
+        try (Cursor cursor = sContentResolver.query(testFileUri, projection,
+                selection, selectionArgs , /* sortOrder */ null)) {
+            assertNotNull(cursor);
+            // Should not return any results
+            assertThat(cursor.getCount()).isEqualTo(0);
+        } finally {
+            // Clean-up
+            file.delete();
+        }
+    }
+
+    @Test
+    @RequiresFlagsEnabled(FLAG_ENABLE_OEM_METADATA)
+    public void testQueryingOemMetadataInSelectionAndOrderByShouldReturnEmptyCursor()
+            throws Exception {
+        String[] projection = new String[] {
+                ImageColumns._ID,
+                ImageColumns.DISPLAY_NAME
+        };
+
+        String selection = MediaColumns.OEM_METADATA + " = ?";
+        String[] selectionArgs = new String[]{"some_val"};
+        String sortOrder = MediaColumns.OEM_METADATA + " DESC";
+
+        final File downloads = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOWNLOADS);
+        File file = stage(R.raw.lg_g4_iso_800_jpg,
+                new File(downloads, "test" + System.nanoTime() + ".jpg"));
+        Uri testFileUri = MediaStore.scanFile(sContentResolver, file);
+
+        try (Cursor cursor = sContentResolver.query(testFileUri, projection,
+                selection, selectionArgs, sortOrder)) {
+            assertNotNull(cursor);
+            // Should not return any results and sortOrder should also be scrubbed without error
+            assertThat(cursor.getCount()).isEqualTo(0);
+        } finally {
+            // Clean-up
+            file.delete();
+        }
+    }
+
+    @Test
+    @RequiresFlagsEnabled(FLAG_ENABLE_OEM_METADATA)
+    public void testQueryingOemMetadataInOrderByShouldReturnNonEmptyCursor() throws Exception {
+        String[] projection = new String[] {
+                ImageColumns._ID,
+                ImageColumns.DISPLAY_NAME
+        };
+
+        String[] sortOrders = new String[] {
+                MediaColumns.OEM_METADATA + " DESC",
+                "images." + MediaColumns.OEM_METADATA + " DESC",
+                "\"images\".\"" + MediaColumns.OEM_METADATA + "\" DESC",
+                "[" + MediaColumns.OEM_METADATA + "] DESC",
+                MediaColumns.OEM_METADATA + " ASC, " + ImageColumns._ID + " DESC"
+        };
+
+        String testFileName = "test" + System.nanoTime() + ".jpg";
+        final File downloads = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOWNLOADS);
+        File file = stage(R.raw.lg_g4_iso_800_jpg,
+                new File(downloads, testFileName));
+        Uri testFileUri = MediaStore.scanFile(sContentResolver, file);
+
+        try {
+            for (String sortOrder : sortOrders) {
+                try (Cursor cursor = sContentResolver.query(testFileUri, projection,
+                        /* selection */ null, /* selectionArgs */ null, sortOrder)) {
+                    assertNotNull(cursor);
+                    // Should return non-empty results even if sorting by restricted column
+                    assertThat(cursor.getCount()).isEqualTo(1);
+                    int nameIndex = cursor.getColumnIndex(ImageColumns.DISPLAY_NAME);
+                    cursor.moveToFirst();
+                    // Assert name column accessed is non-null and valid
+                    assertTrue(cursor.getString(nameIndex).contains(testFileName));
+                }
+            }
+        } finally {
+            // Clean up
+            file.delete();
+        }
+    }
+
+    @Test
+    @RequiresFlagsEnabled(FLAG_ENABLE_OEM_METADATA)
+    public void testQueryingOemMetadataWithInvalidTablePrefixThrowsException() throws Exception {
+        String[] projection = new String[] {
+                ImageColumns._ID,
+                ImageColumns.DISPLAY_NAME
+        };
+
+        String[] invalidClauses = new String[] {
+                "main.images." + MediaColumns.OEM_METADATA,
+                "main.files." + MediaColumns.OEM_METADATA,
+                "files." + MediaColumns.OEM_METADATA,
+                "[files v]." + MediaColumns.OEM_METADATA
+        };
+
+        final File downloads = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOWNLOADS);
+        File file = stage(R.raw.lg_g4_iso_800_jpg,
+                new File(downloads, "test" + System.nanoTime() + ".jpg"));
+        Uri testFileUri = MediaStore.scanFile(sContentResolver, file);
+
+        try {
+            for (String invalidClause : invalidClauses) {
+                assertThrows(IllegalArgumentException.class, () ->
+                        sContentResolver.query(testFileUri, projection,
+                                /* selection */ null, /* selectionArgs */ null,
+                                invalidClause + " DESC"));
+                assertThrows(IllegalArgumentException.class, () ->
+                        sContentResolver.query(testFileUri, projection,
+                                invalidClause + " IS NOT NULL", /* selectionArgs */ null,
+                                /* sortOrder */ null));
+            }
+        } finally {
+            // Clean up
+            file.delete();
+        }
+    }
+
+    @Test
+    @RequiresFlagsEnabled(FLAG_ENABLE_OEM_METADATA)
+    public void testQueryingOemMetadataInGroupByAndHavingShouldReturnEmptyCursor()
+            throws Exception {
+        String[] projection = new String[] {
+                ImageColumns._ID,
+                ImageColumns.DISPLAY_NAME
+        };
+        final File downloads = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOWNLOADS);
+        File file = stage(R.raw.lg_g4_iso_800_jpg,
+                new File(downloads, "test" + System.nanoTime() + ".jpg"));
+        Uri testFileUri = MediaStore.scanFile(sContentResolver, file);
+
+        Bundle queryArgs = new Bundle();
+        queryArgs.putString(QUERY_ARG_SQL_GROUP_BY, MediaColumns.OEM_METADATA);
+        queryArgs.putString(QUERY_ARG_SQL_HAVING, MediaColumns.OEM_METADATA + " > '100'");
+        try (Cursor cursor = sContentResolver.query(testFileUri, projection, queryArgs,
+                /* cancellationSignal */ null)) {
+            assertNotNull(cursor);
+            // Should not return any results for non-self caller
+            assertThat(cursor.getCount()).isEqualTo(0);
+        } finally {
+            // Clean up
             file.delete();
         }
     }

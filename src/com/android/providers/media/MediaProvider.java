@@ -4606,11 +4606,7 @@ public class MediaProvider extends ContentProvider {
             return false;
         }
 
-        Pattern pattern = FILTER_COLUMN_PATTERNS.get(columnToFilter);
-        if (pattern == null) {
-            pattern = Pattern.compile("\\b" + Pattern.quote(columnToFilter) + "\\b",
-                    Pattern.CASE_INSENSITIVE);
-        }
+        Pattern pattern = getColumnPattern(columnToFilter);
         return pattern.matcher(projElement).find();
     }
 
@@ -7123,74 +7119,86 @@ public class MediaProvider extends ContentProvider {
             appendWhereStandalone(qb, ownerPackageMatchClause);
         }
 
-        filterGeolocationClauses(qb, extras, type);
+        if (!isCallingPackageSelf()) {
+            List<String> columnsToFilter = new ArrayList<>();
+            if (indexMediaLatitudeLongitude()) {
+                columnsToFilter.add(LATITUDE);
+                columnsToFilter.add(LONGITUDE);
+            }
+            if (!mCallingIdentity.get().checkCallingPermissionOemMetadata()) {
+                columnsToFilter.add(OEM_METADATA);
+            }
+            if (!columnsToFilter.isEmpty()) {
+                filterClausesForRestrictedColumns(qb, extras, type, columnsToFilter);
+            }
+        }
 
         return qb;
     }
 
     /**
-     * Prevent a query from returning results if the selection clauses query on latitude and
-     * longitude. Only return results if these columns are present in the sort clause to avoid
-     * breaking any existing usage but return them in any arbitrary fashion instead of actually
-     * sorting them.
+     * Prevent a query from returning results if the selection clauses query on restricted columns
+     * like latitude, longitude and OEM metadata. Only return results if these columns are present
+     * in the sort clause to avoid breaking any existing usage but return them in any arbitrary
+     * fashion instead of actually sorting them.
      */
-    private void filterGeolocationClauses(@NonNull SQLiteQueryBuilder qb, @NonNull Bundle extras,
-            int type) {
-        if (!indexMediaLatitudeLongitude() || isCallingPackageSelf()) {
-                return;
-        }
-
-        List<String> filterClauses = getClausesForFilteringGeolocationData(extras, type);
+    private void filterClausesForRestrictedColumns(@NonNull SQLiteQueryBuilder qb,
+            @NonNull Bundle extras, int type, List<String> columnsToFilter) {
+        List<String> filterClauses = getClausesContainingRestrictedColumns(extras, type,
+                columnsToFilter);
 
         if (filterClauses.isEmpty()) {
-                return;
+            return;
         }
 
-        if (filterClauses.contains(QUERY_ARG_SQL_SELECTION) || filterClauses.contains(
-                QUERY_ARG_SQL_HAVING) || filterClauses.contains(QUERY_ARG_SQL_GROUP_BY)) {
-            // Don't return any results if the location metadata columns are queried in the
-            // selection clauses
-            final String geolocationClause = "FALSE";
-            appendWhereStandalone(qb, geolocationClause);
+        if (filterClauses.contains(QUERY_ARG_SQL_SELECTION)
+                || filterClauses.contains(QUERY_ARG_SQL_HAVING)
+                || filterClauses.contains(QUERY_ARG_SQL_GROUP_BY)) {
+            // Don't return any results if the sensitive columns are queried
+            // in the selection clauses
+            appendWhereStandalone(qb, "FALSE");
         } else if (filterClauses.contains(QUERY_ARG_SQL_SORT_ORDER)) {
-            // Do not sort query results if the sort clause includes location metadata columns
+            // Do not sort query results if the sort clause includes sensitive columns
             String sortArgs = extras.getString(QUERY_ARG_SQL_SORT_ORDER);
             if (sortArgs != null) {
-                sortArgs = sortArgs.replaceAll("(?i)\\b" + LATITUDE + "\\b", "NULL");
-                sortArgs = sortArgs.replaceAll("(?i)\\b" + LONGITUDE + "\\b", "NULL");
+                qb.enforceStrictGrammar(null, null, null, sortArgs, null);
+                for (String column : columnsToFilter) {
+                    Pattern pattern = getColumnPattern(column);
+                    sortArgs = pattern.matcher(sortArgs).replaceAll("NULL");
+                }
                 extras.putString(QUERY_ARG_SQL_SORT_ORDER, sortArgs);
             }
         }
     }
 
-    private List<String> getClausesForFilteringGeolocationData(
-            Bundle queryArgs, int type) {
+    private List<String> getClausesContainingRestrictedColumns(
+            Bundle queryArgs, int type, List<String> columnsToFilter) {
         if (type == TYPE_QUERY) {
-            return getClausesForFilteringGeolocationData(queryArgs);
+            return getClausesContainingRestrictedColumns(queryArgs, columnsToFilter);
         }
         return List.of();
     }
 
-    private List<String> getClausesForFilteringGeolocationData(Bundle queryArgs) {
-        final String selection = queryArgs.getString(QUERY_ARG_SQL_SELECTION, "")
-                .toLowerCase(Locale.ROOT);
-        final String groupBy = queryArgs.getString(QUERY_ARG_SQL_GROUP_BY, "")
-                .toLowerCase(Locale.ROOT);
-        final String sort = queryArgs.getString(QUERY_ARG_SQL_SORT_ORDER, "")
-                .toLowerCase(Locale.ROOT);
-        final String having = queryArgs.getString(QUERY_ARG_SQL_HAVING, "")
-                .toLowerCase(Locale.ROOT);
+    private List<String> getClausesContainingRestrictedColumns(
+            Bundle queryArgs, List<String> columnsToFilter) {
+        final String selection = queryArgs.getString(QUERY_ARG_SQL_SELECTION, "");
+        final String groupBy = queryArgs.getString(QUERY_ARG_SQL_GROUP_BY, "");
+        final String sort = queryArgs.getString(QUERY_ARG_SQL_SORT_ORDER, "");
+        final String having = queryArgs.getString(QUERY_ARG_SQL_HAVING, "");
 
         List<String> filteringClauses = new ArrayList<>();
-        if (sort.contains(LATITUDE) || sort.contains(LONGITUDE)) {
-            filteringClauses.add(QUERY_ARG_SQL_SORT_ORDER);
-        }
-        if (selection.contains(LATITUDE) || selection.contains(LONGITUDE)
-                || groupBy.contains(LATITUDE) || groupBy.contains(LONGITUDE)
-                || having.contains(LATITUDE) || having.contains(LONGITUDE)) {
-            filteringClauses.add(QUERY_ARG_SQL_SELECTION);
-            filteringClauses.add(QUERY_ARG_SQL_GROUP_BY);
-            filteringClauses.add(QUERY_ARG_SQL_HAVING);
+        for (String column : columnsToFilter) {
+            if (containsWord(selection, column)
+                    || containsWord(groupBy, column)
+                    || containsWord(having, column)) {
+                filteringClauses.add(QUERY_ARG_SQL_SELECTION);
+                filteringClauses.add(QUERY_ARG_SQL_GROUP_BY);
+                filteringClauses.add(QUERY_ARG_SQL_HAVING);
+                return filteringClauses;
+            } else if (!filteringClauses.contains(QUERY_ARG_SQL_SORT_ORDER)
+                    && containsWord(sort, column)) {
+                filteringClauses.add(QUERY_ARG_SQL_SORT_ORDER);
+            }
         }
         return filteringClauses;
     }
@@ -7201,17 +7209,16 @@ public class MediaProvider extends ContentProvider {
     }
 
     private boolean containsOwnerPackageName(Bundle queryArgs) {
-        final String selection = queryArgs.getString(QUERY_ARG_SQL_SELECTION, "")
-                .toLowerCase(Locale.ROOT);
-        final String groupBy = queryArgs.getString(QUERY_ARG_SQL_GROUP_BY, "")
-                .toLowerCase(Locale.ROOT);
-        final String sort = queryArgs.getString(QUERY_ARG_SQL_SORT_ORDER, "")
-                .toLowerCase(Locale.ROOT);
-        final String having = queryArgs.getString(QUERY_ARG_SQL_HAVING, "")
-                .toLowerCase(Locale.ROOT);
 
-        return selection.contains(OWNER_PACKAGE_NAME) || groupBy.contains(OWNER_PACKAGE_NAME)
-                || sort.contains(OWNER_PACKAGE_NAME) || having.contains(OWNER_PACKAGE_NAME);
+        final String selection = queryArgs.getString(QUERY_ARG_SQL_SELECTION, "");
+        final String groupBy = queryArgs.getString(QUERY_ARG_SQL_GROUP_BY, "");
+        final String sort = queryArgs.getString(QUERY_ARG_SQL_SORT_ORDER, "");
+        final String having = queryArgs.getString(QUERY_ARG_SQL_HAVING, "");
+
+        return containsWord(selection, OWNER_PACKAGE_NAME)
+                || containsWord(groupBy, OWNER_PACKAGE_NAME)
+                || containsWord(sort, OWNER_PACKAGE_NAME)
+                || containsWord(having, OWNER_PACKAGE_NAME);
     }
 
     private void appendAccessCheckQuery(@NonNull SQLiteQueryBuilder qb, boolean forWrite,
@@ -13556,18 +13563,40 @@ public class MediaProvider extends ContentProvider {
         sPlacementColumns.add(MediaStore.MediaColumns.DATE_EXPIRES);
     }
 
+    /**
+     * Creates a regex pattern matching a SQL column reference, including an optional table
+     * prefix and identifier escaping/quoting.
+     * Components:
+     * <ul>
+     *   <li>{@code tablePrefix}: Optionally matches a table qualifier followed by a dot
+     *       (e.g., {@code files.}, {@code [images].}, or {@code "files".}).</li>
+     *   <li>{@code colRef}: Matches the target column name either enclosed in square brackets
+     *       ({@code [col]}), backticks ({@code `col`}), double quotes ({@code "col"}), or as a bare
+     *       word-bounded identifier ({@code \bcol\b}).</li>
+     * </ul>
+     */
+    private static Pattern createColumnPattern(String column) {
+        String quotedCol = Pattern.quote(column);
+        // Optional table qualifier: e.g., "files.", "[images].", "\"files\"."
+        String tablePrefix = "(?:(?:\\[\\w+\\]|`\\w+`|\"\\w+\"|\\b\\w+)\\s*\\.\\s*)?";
+        // Column identifier: e.g., "[col]", "`col`", "\"col\"", or bare "\bcol\b"
+        String colRef = "(?:\\[" + quotedCol + "\\]|`" + quotedCol + "`|\"" + quotedCol
+                + "\"|\\b" + quotedCol + "\\b)";
+        return Pattern.compile(tablePrefix + colRef, Pattern.CASE_INSENSITIVE);
+    }
+
     private static final Map<String, Pattern> FILTER_COLUMN_PATTERNS = Map.of(
-            LATITUDE, Pattern.compile("\\b" + Pattern.quote(LATITUDE) + "\\b",
-                    Pattern.CASE_INSENSITIVE),
-            LONGITUDE, Pattern.compile("\\b" + Pattern.quote(LONGITUDE) + "\\b",
-                    Pattern.CASE_INSENSITIVE),
-            OEM_METADATA, Pattern.compile("\\b" + Pattern.quote(OEM_METADATA) + "\\b",
-                    Pattern.CASE_INSENSITIVE),
-            OWNER_PACKAGE_NAME, Pattern.compile("\\b" + Pattern.quote(OWNER_PACKAGE_NAME) + "\\b",
-                    Pattern.CASE_INSENSITIVE),
-            _SPECIAL_FORMAT, Pattern.compile("\\b" + Pattern.quote(_SPECIAL_FORMAT) + "\\b",
-                    Pattern.CASE_INSENSITIVE)
+            LATITUDE, createColumnPattern(LATITUDE),
+            LONGITUDE, createColumnPattern(LONGITUDE),
+            OEM_METADATA, createColumnPattern(OEM_METADATA),
+            OWNER_PACKAGE_NAME, createColumnPattern(OWNER_PACKAGE_NAME),
+            _SPECIAL_FORMAT, createColumnPattern(_SPECIAL_FORMAT)
     );
+
+    private static Pattern getColumnPattern(@NonNull String column) {
+        final Pattern pattern = FILTER_COLUMN_PATTERNS.get(column);
+        return pattern != null ? pattern : createColumnPattern(column);
+    }
 
     /**
      * Matches SQL alias clauses at the end of a projection column expression.

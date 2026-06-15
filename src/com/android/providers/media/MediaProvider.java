@@ -4227,11 +4227,7 @@ public class MediaProvider extends ContentProvider {
             return false;
         }
 
-        Pattern pattern = FILTER_COLUMN_PATTERNS.get(columnToFilter);
-        if (pattern == null) {
-            pattern = Pattern.compile("\\b" + Pattern.quote(columnToFilter) + "\\b",
-                    Pattern.CASE_INSENSITIVE);
-        }
+        Pattern pattern = getColumnPattern(columnToFilter);
         return pattern.matcher(projElement).find();
     }
 
@@ -6698,17 +6694,16 @@ public class MediaProvider extends ContentProvider {
     }
 
     private boolean containsOwnerPackageName(Bundle queryArgs) {
-        final String selection = queryArgs.getString(QUERY_ARG_SQL_SELECTION, "")
-                .toLowerCase(Locale.ROOT);
-        final String groupBy = queryArgs.getString(QUERY_ARG_SQL_GROUP_BY, "")
-                .toLowerCase(Locale.ROOT);
-        final String sort = queryArgs.getString(QUERY_ARG_SQL_SORT_ORDER, "")
-                .toLowerCase(Locale.ROOT);
-        final String having = queryArgs.getString(QUERY_ARG_SQL_HAVING, "")
-                .toLowerCase(Locale.ROOT);
 
-        return selection.contains(OWNER_PACKAGE_NAME) || groupBy.contains(OWNER_PACKAGE_NAME)
-                || sort.contains(OWNER_PACKAGE_NAME) || having.contains(OWNER_PACKAGE_NAME);
+        final String selection = queryArgs.getString(QUERY_ARG_SQL_SELECTION, "");
+        final String groupBy = queryArgs.getString(QUERY_ARG_SQL_GROUP_BY, "");
+        final String sort = queryArgs.getString(QUERY_ARG_SQL_SORT_ORDER, "");
+        final String having = queryArgs.getString(QUERY_ARG_SQL_HAVING, "");
+
+        return containsWord(selection, OWNER_PACKAGE_NAME)
+                || containsWord(groupBy, OWNER_PACKAGE_NAME)
+                || containsWord(sort, OWNER_PACKAGE_NAME)
+                || containsWord(having, OWNER_PACKAGE_NAME);
     }
 
     private void appendAccessCheckQuery(@NonNull SQLiteQueryBuilder qb, boolean forWrite,
@@ -12155,10 +12150,36 @@ public class MediaProvider extends ContentProvider {
         sPlacementColumns.add(MediaStore.MediaColumns.DATE_EXPIRES);
     }
 
+    /**
+     * Creates a regex pattern matching a SQL column reference, including an optional table
+     * prefix and identifier escaping/quoting.
+     * Components:
+     * <ul>
+     *   <li>{@code tablePrefix}: Optionally matches a table qualifier followed by a dot
+     *       (e.g., {@code files.}, {@code [images].}, or {@code "files".}).</li>
+     *   <li>{@code colRef}: Matches the target column name either enclosed in square brackets
+     *       ({@code [col]}), backticks ({@code `col`}), double quotes ({@code "col"}), or as a bare
+     *       word-bounded identifier ({@code \bcol\b}).</li>
+     * </ul>
+     */
+    private static Pattern createColumnPattern(String column) {
+        String quotedCol = Pattern.quote(column);
+        // Optional table qualifier: e.g., "files.", "[images].", "\"files\"."
+        String tablePrefix = "(?:(?:\\[\\w+\\]|`\\w+`|\"\\w+\"|\\b\\w+)\\s*\\.\\s*)?";
+        // Column identifier: e.g., "[col]", "`col`", "\"col\"", or bare "\bcol\b"
+        String colRef = "(?:\\[" + quotedCol + "\\]|`" + quotedCol + "`|\"" + quotedCol
+                + "\"|\\b" + quotedCol + "\\b)";
+        return Pattern.compile(tablePrefix + colRef, Pattern.CASE_INSENSITIVE);
+    }
+
     private static final Map<String, Pattern> FILTER_COLUMN_PATTERNS = Map.of(
-            OWNER_PACKAGE_NAME, Pattern.compile("\\b" + Pattern.quote(OWNER_PACKAGE_NAME) + "\\b",
-                    Pattern.CASE_INSENSITIVE)
+            OWNER_PACKAGE_NAME, createColumnPattern(OWNER_PACKAGE_NAME)
     );
+
+    private static Pattern getColumnPattern(@NonNull String column) {
+        final Pattern pattern = FILTER_COLUMN_PATTERNS.get(column);
+        return pattern != null ? pattern : createColumnPattern(column);
+    }
 
     /**
      * Matches SQL alias clauses at the end of a projection column expression.

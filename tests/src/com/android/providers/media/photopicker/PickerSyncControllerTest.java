@@ -2103,6 +2103,21 @@ public class PickerSyncControllerTest {
     }
 
     @Test
+    public void testHandleMediaEventChangeNotification_withoutCachedCollectionInfo()
+            throws Exception {
+        mController = PickerSyncController.initialize(
+                mContext, mFacade, mConfigStore, mLockManager, LOCAL_PROVIDER_AUTHORITY);
+        mController.setCloudProvider(CLOUD_PRIMARY_PROVIDER_AUTHORITY);
+
+        // A media event can arrive before the first collection-info fetch has populated the
+        // cache. Treat it as a collection change instead of dereferencing a null cache entry.
+        mController.handleMediaEventNotification(
+                /* localOnly */ false, CLOUD_PRIMARY_PROVIDER_AUTHORITY, COLLECTION_1);
+
+        assertThat(mFacade.getCloudProvider()).isNull();
+    }
+
+    @Test
     public void testOnBootComplete() {
         mController.setCloudProvider(/* authority */ CLOUD_PRIMARY_PROVIDER_AUTHORITY);
         assertWithMessage("Cloud media queries should be disabled before sync.")

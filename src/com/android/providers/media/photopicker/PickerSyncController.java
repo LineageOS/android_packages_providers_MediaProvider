@@ -2294,8 +2294,11 @@ public class PickerSyncController {
             try (CloseableReentrantLock ignored = mPickerSyncLockManager
                     .tryLock(PickerSyncLockManager.CLOUD_PROVIDER_LOCK)) {
                 final String currentCloudProvider = getCloudProviderWithTimeout();
-                if (authority.equals(currentCloudProvider) && !newCollectionId
-                        .equals(mLatestCloudProviderCollectionInfo.getCollectionId())) {
+                final ProviderCollectionInfo latestCollectionInfo =
+                        mLatestCloudProviderCollectionInfo;
+                if (authority.equals(currentCloudProvider)
+                        && (latestCollectionInfo == null || !newCollectionId
+                                .equals(latestCollectionInfo.getCollectionId()))) {
                     disablePickerCloudMediaQueries(/* isLocal */ false);
                     // Invalidate search cache if the cloud account changes
                     clearCloudSearchCapabilityCache();
